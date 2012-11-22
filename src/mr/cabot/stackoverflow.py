@@ -71,5 +71,24 @@ class SOGeolocation(object):
             location = None
         return location
 
+class SOListing(object):
+	
+    adapts(Message)
+    implements(IListing)
+    
+    def __init__(self, answer):
+        self.answer = answer
+
+    @property
+    def summary(self):
+        author = email.utils.parseaddr(self.email.get("From"))[0]
+        subject = self.email.get("Subject")
+        date = self.email.get("Date")
+        return "%s sent the email '%s' at %s" % (author, subject, date)
+
+gsm = getGlobalSiteManager()
+gsm.registerAdapter(GmaneGeolocation)
+gsm.registerAdapter(GmaneListing)
+
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(SOGeolocation)
