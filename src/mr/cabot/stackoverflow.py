@@ -10,7 +10,7 @@ import urllib2
 
 import ggeocoder
 
-BASE = "https://api.stackexchange.com/2.1/questions?site=stackoverflow&filter=!9hnGssUZw&sort=activity"
+BASE = "https://api.stackexchange.com/2.1/questions?site=stackoverflow&filter=!9hnGssUZw"
 
 
 class Question(object):
@@ -31,10 +31,11 @@ class StackOverflow(object):
     def __init__(self, tags):
         self.tags = tags
     
-    def get_questions_since(self, date):
+    def get_questions_since(self, date, method='activity'):
         ts_from = calendar.timegm(date.utctimetuple())
         ts_to = calendar.timegm(datetime.datetime.now().utctimetuple())
         url = BASE
+        url += "&sort=%s" % (method)
         url += "&min=%d&max=%d" % (ts_from, ts_to)
         url += "&tagged=%s" % (";".join(self.tags))
         resp = urllib2.urlopen(url).read()
