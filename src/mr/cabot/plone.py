@@ -469,3 +469,13 @@ def get_github_accounts(accounts, token):
         except:
             location = None
         users.add_user(User(user.get('name', user['login']), user.get('email', None), location))
+
+def get_recent_mailinglist_posts():
+    from mr.cabot.gmane import MailingList
+    lists = MailingList("gmane.comp.web.zope.plone.user"), MailingList("gmane.comp.web.zope.plone.devel")
+    messages = []
+    for mlist in lists:
+        to_id = mlist.latest
+        from_id = to_id - 10
+        messages += [mlist[post_id] for post_id in range(from_id, to_id)]
+    return messages
