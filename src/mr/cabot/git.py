@@ -6,6 +6,11 @@ import subprocess
 import tempfile
 import shutil
 
+class Commit(object):
+    
+    def __init__(self, kwargs):
+        self.__dict__.update(kwargs)
+
 class GitRepo(object):
     
     def __init__(self, url):
@@ -26,7 +31,7 @@ class GitRepo(object):
             os.chdir(cwd)
     
     def commits_since(self, date):
-        return {commit for commit in self.commits() if commit['date'] > date}
+        return {commit for commit in self.commits() if commit.date > date}
     
     def commits(self):
         log = self._git_command("log")
@@ -47,7 +52,7 @@ class GitRepo(object):
             data['author'] = parseaddr(data['author'])
         except KeyError:
             data['author'] = ('','')
-        return collections.frozendict(data)
+        return Commit(data)
 
 def repo_objects(repos):
     return {i[0]:GitRepo(i[1]) for i in repos.items()}
