@@ -5,6 +5,9 @@ version = '1.0'
 
 install_requires = [
   'setuptools',
+  'zope.interface',
+  'zope.component',
+  'ggeocoder',
 ]
 
 setup(name='mr.cabot',

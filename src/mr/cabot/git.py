@@ -6,6 +6,11 @@ import subprocess
 import tempfile
 import shutil
 
+from zope.component import adapts, getGlobalSiteManager
+from zope.interface import implements
+
+from mr.cabot.interfaces import IGeolocation
+
 class Commit(object):
     
     def __init__(self, kwargs):
@@ -54,5 +59,19 @@ class GitRepo(object):
             data['author'] = ('','')
         return Commit(data)
 
-def repo_objects(repos):
-    return {i[0]:GitRepo(i[1]) for i in repos.items()}
+
+class GitGeolocation(object):
+	
+    adapts(Commit)
+    implements(IGeolocation)
+    
+    def __init__(self, commit):
+        self.commit = commit
+    
+    @property
+    def coords(self):
+        import pdb; pdb.set_trace()
+        return None
+
+gsm = getGlobalSiteManager()
+gsm.registerAdapter(GitGeolocation)
