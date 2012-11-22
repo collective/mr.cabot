@@ -248,6 +248,7 @@ GITHUB_ACCOUNTS = {
     'jaroel',
     'jcbrand',
     'jcerjak',
+    'jdinuncio',
     'jean',
     'jensens',
     'jessesnyder',
