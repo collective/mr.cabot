@@ -12,10 +12,10 @@ class User(object):
         self.location = location
     
     def __cmp__(self, other):
-        return cmp((self.name, self.email, self.location), (other.name, other.email, other.location))
+        return cmp((self.name, self.email), (other.name, other.email))
     
     def __hash__(self):
-        return hash(self.name) + hash(self.email) + hash(self.location)
+        return hash(self.name) + hash(self.email)
 
 class Users(object):
 

@@ -70,8 +70,19 @@ class GitGeolocation(object):
     
     @property
     def coords(self):
-        import pdb; pdb.set_trace()
-        return None
+        users = getUtility(IUserDatabase)
+        author = None
+        try:
+            author = users.get_user_by_email(self.commit.author[1])
+        except:
+            try:
+                author = users.get_user_by_name(self.commit.author[0])
+            except:
+                pass
+        if author is None:
+            return None
+        else:
+            return author.location
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(GitGeolocation)
