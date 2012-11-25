@@ -16,12 +16,12 @@ def name_cmp(one, two):
     one = [l for l in one if l not in BAD and l in string.uppercase]
     two = [l for l in two if l not in BAD and l in string.uppercase]
     diffs = 0
-    if len(one) < 5 or len(two) < 5:
+    if len(one) < 7 or len(two) < 7:
         return one == two
     for ch1, ch2 in zip(one, two):
         if ch1 != ch2:
             diffs += 1
-    return diffs < 3
+    return diffs <= 2
 
 class User(object):
     
