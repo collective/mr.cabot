@@ -12,7 +12,7 @@ following info:
 		plone-developers
 		product-developers
 		stackoverflow
-	    github-core
+		github-core
 		github-collective
 
 	[github-collective]
@@ -52,3 +52,5 @@ how to do it for now.
 
 You need to create var/github-collective etc yourself, if it's missing it will
 use a tempdir and have to redownload every time.
+
+You can generate the HTML snippets with `./bin/cabot > snippets.html`
