@@ -33,6 +33,6 @@ setup(name='mr.cabot',
       test_suite='mr.cabot.tests',
       entry_points="""
       [console_scripts]
-      sebastian = mr.cabot.sebastian:sebastian
+      cabot = mr.cabot.sebastian:sebastian
       """,
       )
