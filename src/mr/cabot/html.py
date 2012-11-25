@@ -7,8 +7,12 @@ def html_snippet(obj):
     else:
         lat, lon = loc
     content = IListing(obj).summary
-    return """<div class="homepage-pin homepage-pin-doc homepage-pin-west">
+    if lat < 0:
+        hemi = "west"
+    else:
+        hemi = "east"
+    return """<div class="homepage-pin homepage-pin-doc homepage-pin-%s">
 	  <span class="latitude">%f</span>
 	  <span class="longitude">%f</span>
 	  <div class="content">%s</div>
-	</div>""" % (lat, lon, content)
+	</div>""" % (hemi, lat, lon, content)
