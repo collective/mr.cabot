@@ -6,10 +6,10 @@ import subprocess
 import tempfile
 import shutil
 
-from zope.component import adapts, getGlobalSiteManager
+from zope.component import adapts, getGlobalSiteManager, getUtility
 from zope.interface import implements
 
-from mr.cabot.interfaces import IGeolocation, IListing
+from mr.cabot.interfaces import IGeolocation, IListing, IUserDatabase
 
 def create(url):
 	return GitRepo(url)
@@ -123,7 +123,7 @@ class GitListing(object):
         author = self.commit.author[0]
         subject = self.commit.message[:25]
         date = self.commit.date
-        return "%s committed '%s' to %s at %s" % (author, subject, package, date)
+        return "%s committed '%s' to %s at %s" % (author, subject, self.commit.package, date)
 
 
 gsm = getGlobalSiteManager()
