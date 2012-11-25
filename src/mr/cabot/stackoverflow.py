@@ -45,7 +45,11 @@ class StackOverflow(object):
         questions = json.loads(resp)['items']
         questions = map(Question, questions)
         return questions
-
+    
+    def get_data(self, foo):
+        now = datetime.datetime.now()
+        past = now - datetime.timedelta(days=5)
+        return set(self.get_questions_since(past))
 
 class SOGeolocation(object):
 	
