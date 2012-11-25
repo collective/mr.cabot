@@ -22,8 +22,9 @@ def lazy_location(user):
         if not user.get("location", None):
             return None
         try:
-            logger.debug("geocoder: Getting coordinates for %s" % (user['location']))
-            return geocoder.geocode(user['location'])[0].coordinates
+            coords = geocoder.geocode(user['location'])[0].coordinates
+            logger.debug("geocoder: Getting coordinates for user %s at %s == %s" % (user['login'], user['location'], `coords`))
+            return coords
         except:
             return None
     return get_location
@@ -97,6 +98,7 @@ class create(object):
                 logger.info("github: Got all repos for %s" % (self.org))
                 break
         data = set()
+        logger.debug("github: Got data for %d repos in %s" % (len(self.repos), self.org))
         for repo in self.repos.values():
             data |= repo.get_data()
         return data
