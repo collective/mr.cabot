@@ -76,7 +76,7 @@ class create(object):
                     location = None
                 logger.info("github: Getting changes for %s/%s" % (self.org, repo_name))
                 self.repos[repo_name] = GitRepo(repo_url, location=location)
-            links = LINKS.findall(org_repos_resp.headers['Link'])
+            links = LINKS.findall(org_repos_resp.headers.get('Link', ''))
             links = {link[1]:link[0] for link in links}
             if 'next' in links:
                 logger.debug("github: %s has too many repos, requesting more" % (self.org))
