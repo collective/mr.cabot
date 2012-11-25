@@ -59,7 +59,10 @@ class GitRepo(object):
         return {commit for commit in self.commits() if commit.date > date}
     
     def commits(self):
-        log = self._git_command("log")
+        try:
+            log = self._git_command("log")
+        except:
+            return set()
         log = ["commit:"+commit for commit in log.split("commit") if commit]
         return set(map(self._parse_commit, log))
     
