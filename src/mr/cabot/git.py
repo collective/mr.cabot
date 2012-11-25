@@ -9,7 +9,7 @@ import shutil
 from zope.component import adapts, getGlobalSiteManager
 from zope.interface import implements
 
-from mr.cabot.interfaces import IGeolocation
+from mr.cabot.interfaces import IGeolocation, IListing
 
 def create(url):
 	return GitRepo(url)
@@ -105,6 +105,23 @@ class GitGeolocation(object):
             return None
         else:
             return author.location
+    
+
+class GitListing(object):
+	
+    adapts(Commit)
+    implements(IListing)
+    
+    def __init__(self, commit):
+        self.commit = commit
+
+    @property
+    def summary(self):
+        author = self.commit.author[0]
+        subject = self.commit.message[:25]
+        date = self.commit.date
+        return "%s committed '%s' to %s at %s" % (author, subject, package, date)
+
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(GitGeolocation)
