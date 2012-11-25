@@ -52,7 +52,7 @@ class Sebastian(object):
         return found
 
     def __call__(self, **kwargs):
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         ch.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
         logger.addHandler(ch)
