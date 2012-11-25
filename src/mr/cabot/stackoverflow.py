@@ -12,6 +12,8 @@ import ggeocoder
 
 BASE = "https://api.stackexchange.com/2.1/questions?site=stackoverflow&filter=!9hnGssUZw"
 
+def create(tag):
+	return StackOverflow([tag])
 
 class Question(object):
     

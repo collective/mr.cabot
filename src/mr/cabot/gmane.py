@@ -13,6 +13,9 @@ from mr.cabot.interfaces import IGeolocation, IUserDatabase, IListing
 
 IP = re.compile("\d+\.\d+\.\d+\.\d+")
 
+def create(group):
+	return MailingList(group)
+
 class MailingList(object):
     
     def __init__(self, group):

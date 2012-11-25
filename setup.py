@@ -31,4 +31,8 @@ setup(name='mr.cabot',
       zip_safe=False,
       install_requires=install_requires,
       test_suite='mr.cabot.tests',
+      entry_points="""
+      [console_scripts]
+      sebastian = mr.cabot.sebastian:sebastian
+      """,
       )
