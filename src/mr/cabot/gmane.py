@@ -44,7 +44,10 @@ class MailingList(object):
         logger.debug("gmane: Getting article %d for archive %s" % (key, self.group))
         article = self.gmane.article(str(key))
         message = "\n".join(article[-1])
-        return email.message_from_string(message)
+        mail = email.message_from_string(message)
+        mail.date=datetime.datetime.fromtimestamp(mktime_tz(parsedate_tz(mail['date'])))
+        return mail
+
     
     def get_data(self, messages):
         messages = int(messages)
@@ -106,9 +109,8 @@ class GmaneListing(object):
     def summary(self):
         author = email.utils.parseaddr(self.email.get("From"))[0]
         subject = self.email.get("Subject")
-        date = self.email.get("Date")
-        date = datetime.datetime.fromtimestamp(mktime_tz(parsedate_tz(date)))
-        return "%s sent the email <br />'%s' <br />at %s" % (author, subject, date)
+        date = self.email.date
+        return "%s sent the email <br />'%s' <br />at %s" % (author, subject, date.isoformat())
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(GmaneGeolocation)

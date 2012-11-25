@@ -30,6 +30,7 @@ class Answer(object):
     
     def __init__(self, kwargs, title):
         self.__dict__.update(kwargs)
+        self.date = datetime.datetime.fromtimestamp(self.creation_date)
         self.title = title
 
 class StackOverflow(object):
