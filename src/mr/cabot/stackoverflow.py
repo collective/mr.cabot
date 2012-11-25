@@ -9,6 +9,7 @@ from StringIO import StringIO
 import urllib2
 
 import ggeocoder
+from mr.cabot.sebastian import logger
 
 BASE = "https://api.stackexchange.com/2.1/questions?site=stackoverflow&filter=!9hnGssUZw"
 
@@ -40,9 +41,11 @@ class StackOverflow(object):
         url += "&sort=%s" % (method)
         url += "&min=%d&max=%d" % (ts_from, ts_to)
         url += "&tagged=%s" % (";".join(self.tags))
+        logger.debug("stackoverflow: getting %s" % url)
         resp = urllib2.urlopen(url).read()
         resp = gzip.GzipFile(fileobj=StringIO(resp)).read()
         questions = json.loads(resp)['items']
+        logger.info("stackoverflow: Getting questions for tags: %s" % (",".join(self.tags)))
         questions = map(Question, questions)
         return questions
     

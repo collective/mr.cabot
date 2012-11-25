@@ -40,6 +40,7 @@ class create(object):
         
         url = "https://api.github.com/orgs/%s/repos?access_token=%s" % (self.org, self.token)
         while True:
+            logger.debug("github: getting %s" % url)
             org_repos_resp = urllib2.urlopen(url)
             org_repos = json.loads(org_repos_resp.read())
             self.repos = {}

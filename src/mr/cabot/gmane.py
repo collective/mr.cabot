@@ -10,6 +10,7 @@ from zope.component import getGlobalSiteManager, getUtility
 from zope.interface import implements
 
 from mr.cabot.interfaces import IGeolocation, IUserDatabase, IListing
+from mr.cabot.sebastian import logger
 
 IP = re.compile("\d+\.\d+\.\d+\.\d+")
 
@@ -29,6 +30,7 @@ class MailingList(object):
     
     @property
     def group_info(self):
+        logger.debug("gmane: Switching to archive %s" % (self.group))
         return self.gmane.group(self.group)
     
     @property
@@ -36,6 +38,7 @@ class MailingList(object):
         return int(self.group_info[3])
     
     def __getitem__(self, key):
+        logger.debug("gmane: Getting article %d for archive %s" % (key, self.group))
         article = self.gmane.article(str(key))
         message = "\n".join(article[-1])
         return email.message_from_string(message)
