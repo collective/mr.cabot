@@ -19,15 +19,18 @@ def create(tag):
 class Question(object):
     
     def __init__(self, kwargs):
+        self.__dict__.update(kwargs)
+        self.answers = set()
         if 'answers' not in kwargs:
             kwargs['answers'] = []
-        kwargs['answers'] = map(Answer, kwargs['answers'])
-        self.__dict__.update(kwargs)
+        for answer in kwargs['answers']:
+            self.answers.add(Answer(answer, title=self.title))
 
 class Answer(object):
     
-    def __init__(self, kwargs):
+    def __init__(self, kwargs, title):
         self.__dict__.update(kwargs)
+        self.title = title
 
 class StackOverflow(object):
     
@@ -53,7 +56,11 @@ class StackOverflow(object):
         now = datetime.datetime.now()
         days = int(days)
         past = now - datetime.timedelta(days=days)
-        return set(self.get_questions_since(past))
+        questions = set(self.get_questions_since(past))
+        answers = set()
+        for question in questions:
+            answers |= question.answers
+        return answers
 
 class SOGeolocation(object):
 	
@@ -82,9 +89,9 @@ class SOGeolocation(object):
             location = None
         return location
 
-class SOListing(object):
+class SOAnswerListing(object):
 	
-    adapts(Question)
+    adapts(Answer)
     implements(IListing)
     
     def __init__(self, answer):
@@ -92,9 +99,9 @@ class SOListing(object):
 
     @property
     def summary(self):
-        return "Dunno"
+        return '%s answered the question "%s"' % (self.answer.owner['display_name'], self.answer.title)
 
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(SOGeolocation)
-gsm.registerAdapter(SOListing)
+gsm.registerAdapter(SOAnswerListing)
