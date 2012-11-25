@@ -11,6 +11,9 @@ from zope.interface import implements
 
 from mr.cabot.interfaces import IGeolocation
 
+def create(url):
+	return GitRepo(url)
+
 class Commit(object):
     
     def __init__(self, kwargs):
@@ -58,7 +61,12 @@ class GitRepo(object):
         except KeyError:
             data['author'] = ('','')
         return Commit(data)
-
+    
+    def get_data(self):
+        now = datetime.datetime.now()
+        past = now - datetime.timedelta(days=5)
+        return set(self.commits_since(past))
+    
 
 class GitGeolocation(object):
 	
