@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import urllib2
 
 import ggeocoder
@@ -8,6 +9,9 @@ from zope.component import getUtility
 from mr.cabot.interfaces import IUserDatabase
 from mr.cabot.git import GitRepo
 from mr.cabot.users import User
+from mr.cabot.sebastian import logger
+
+LINKS = re.compile("<(.*?)>; rel=\"(.*?)\",?")
 
 class create(object):
     
@@ -33,16 +37,29 @@ class create(object):
         self.token = token
         if checkout_directory == "temp":
             checkout_directory = None
-        org_repos = json.loads(urllib2.urlopen("https://api.github.com/orgs/%s/repos?access_token=%s" % (self.org, self.token)).read())
-        self.repos = {}
-        for repo in org_repos:
-            repo_name = repo['name']
-            repo_url = repo['git_url']
-            if checkout_directory:
-                location = os.path.join(checkout_directory, repo_name)
+        
+        url = "https://api.github.com/orgs/%s/repos?access_token=%s" % (self.org, self.token)
+        while True:
+            org_repos_resp = urllib2.urlopen(url)
+            org_repos = json.loads(org_repos_resp.read())
+            self.repos = {}
+            for repo in org_repos:
+                repo_name = repo['name']
+                repo_url = repo['git_url']
+                if checkout_directory:
+                    location = os.path.join(checkout_directory, repo_name)
+                else:
+                    location = None
+                logger.info("github: Getting changes for %s/%s" % (self.org, repo_name))
+                self.repos[repo_name] = GitRepo(repo_url, location=location)
+            links = LINKS.findall(org_repos_resp.headers['Link'])
+            links = {link[1]:link[0] for link in links}
+            if 'next' in links:
+                logger.debug("github: %s has too many repos, requesting more" % (self.org))
+                url = links['next']
             else:
-                location = None
-            self.repos[repo_name] = GitRepo(repo_url, location=location)
+                logger.info("github: Got all repos for %s" % (self.org))
+                break
         data = set()
         for repo in self.repos.values():
             data |= repo.get_data()
