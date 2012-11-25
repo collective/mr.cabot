@@ -13,6 +13,8 @@ import subprocess
 import sys
 import textwrap
 
+from mr.cabot.html import html_snippet
+
 logger = logging.getLogger("mr.cabot")
 
 def find_base():
@@ -38,7 +40,10 @@ class Sebastian(object):
             kwargs = inspect.getargspec(source.get_data).args
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
             kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-            data |= source.get_data(**kwargs)
+            local_data = source.get_data(**kwargs)
+            for datum in local_data:
+                print html_snippet(datum)
+            data |= local_data
         pass
 
     def get_data_sources(self):
