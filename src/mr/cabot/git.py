@@ -41,10 +41,7 @@ class GitRepo(object):
             try:
                 pulled = self._git_command("pull")
             except:
-                if "no such ref was fetched" in pulled:
-                    pass
-                else:
-                    raise
+                pass
             self.remove = False
     
     def __del__(self):
