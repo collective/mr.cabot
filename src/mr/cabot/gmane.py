@@ -39,6 +39,9 @@ class MailingList(object):
         article = self.gmane.article(str(key))
         message = "\n".join(article[-1])
         return email.message_from_string(message)
+    
+    def get_data(self):
+        return {self[item] for item in range(self.latest-14, self.latest+1)}
 
 
 class GmaneGeolocation(object):
