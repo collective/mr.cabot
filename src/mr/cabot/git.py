@@ -47,7 +47,7 @@ class GitRepo(object):
     def _git_command(self, *args):
         cwd = os.getcwd()
         try:
-            return subprocess.check_output(["git"] + list(args), cwd=self.location)
+            return subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT, cwd=self.location)
         finally:
             os.chdir(cwd)
     
