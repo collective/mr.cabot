@@ -1,6 +1,8 @@
 import collections
 import datetime
 from email.utils import parsedate_tz, parseaddr, mktime_tz
+import itertools
+from operator import attrgetter
 import os
 import subprocess
 import tempfile
@@ -10,15 +12,30 @@ from zope.component import adapts, getGlobalSiteManager, getUtility
 from zope.interface import implements
 
 from mr.cabot.interfaces import IGeolocation, IListing, IUserDatabase
+from mr.cabot.sebastian import logger
 
 def create(url):
 	return GitRepo(url)
 
 class Commit(object):
     
-    def __init__(self, kwargs, package):
+    def __init__(self, kwargs, package, numcommits=None):
         self.__dict__.update(kwargs)
         self.package = package
+        if numcommits is None:
+            self._num_commits = 1
+        else:
+            self._num_commits = numcommits
+    
+    def __add__(self, other):
+        if self.package != other.package:
+            raise ValueError("Different packages")
+        if self.author != other.author:
+            raise ValueError("Different committers")
+        else:
+            num = self._num_commits + other._num_commits
+            data = {"author":self.author, "date":min(self.date, other.date), "message":"%d commits" % (num)}
+            return Commit(data, self.package, numcommits=num)
 
 class GitRepo(object):
     
@@ -56,7 +73,16 @@ class GitRepo(object):
             os.chdir(cwd)
     
     def commits_since(self, date):
-        return {commit for commit in self.commits() if commit.date > date}
+        commits = {commit for commit in self.commits() if commit.date > date}
+        if len(commits) > 5:
+            author=attrgetter("author")
+            grouped = itertools.groupby(sorted(commits, key=author),key=author)
+            grouped_commits = set()
+            for user, commits in grouped:
+                logger.debug("git: Combined commits by %s in %s" % (user, self.package))
+                grouped_commits.add(reduce(Commit.__add__, commits))
+            commits = grouped_commits
+        return commits
     
     def commits(self):
         try:
