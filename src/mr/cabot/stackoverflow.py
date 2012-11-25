@@ -76,6 +76,7 @@ class SOGeolocation(object):
         except:
             return None
         try:
+            logger.info("geocoder: Getting coordinates for %s" % (user['location']))
             location = geocoder.geocode(user['location'])[0].coordinates
         except:
             location = None

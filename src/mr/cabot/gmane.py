@@ -73,7 +73,10 @@ class GmaneGeolocation(object):
         ips = [ip[0] for ip in ips if ip and not ip[0].startswith("10.") and not ip[0].startswith("192.168")]
         likely = ips[-1]
         try:
-            loc = json.loads(urllib2.urlopen("http://freegeoip.net/json/%s"%likely).read())
+            logger.info("geocoder: Getting location for %s" % (likely))
+            url = "http://freegeoip.net/json/%s"%likely
+            logger.debug("geocoder: Fetching %s" % (url))
+            loc = json.loads(urllib2.urlopen(url).read())
             ll = float(loc['latitude']), float(loc['longitude'])
             if any(ll):
                 return ll
