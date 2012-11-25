@@ -1,6 +1,7 @@
 import argparse
 from ConfigParser import SafeConfigParser
 import atexit
+import datetime
 import pkg_resources
 import errno
 import inspect
@@ -51,10 +52,14 @@ class Sebastian(object):
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
             kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
             local_data = source.get_data(**kwargs)
-            for datum in local_data:
-                print html_snippet(datum)
             data |= local_data
-        pass
+        
+        day_filter = int(self.config.get("cabot", "days", "5"))
+        ago = datetime.datetime.now() - datetime.timedelta(days=day_filter)
+        data = {datum for datum in data if datum.date >= ago}
+        for datum in data:
+            print html_snippet(datum)
+            
 
     def get_user_sources(self):        
         source_ids = self.config.get("cabot", "users").split()
