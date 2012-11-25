@@ -37,6 +37,13 @@ def find_base():
 class Sebastian(object):
 
     def generate_map(self):
+        users = self.get_user_sources()
+        for source_id, source in users.items():
+            kwargs = inspect.getargspec(source.get_users).args
+            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
+            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
+            local_data = source.get_users(**kwargs)
+        
         sources = self.get_data_sources()
         data = set()
         for source_id, source in sources.items():
@@ -49,7 +56,17 @@ class Sebastian(object):
             data |= local_data
         pass
 
-    def get_data_sources(self):
+    def get_user_sources(self):        
+        source_ids = self.config.get("cabot", "users").split()
+        found = {}
+        for source_id in source_ids:
+            source_class = self.config.get(source_id, "type")
+            source_class = "mr.cabot.%s" % (source_class)
+            kls = __import__(source_class, globals(), locals(), ['create'], -1)
+            found[source_id] = kls.create(self.config.get(source_id, 'key'))
+        return found
+
+    def get_data_sources(self):        
         source_ids = self.config.get("cabot", "sources").split()
         found = {}
         for source_id in source_ids:

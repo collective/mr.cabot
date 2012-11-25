@@ -20,10 +20,17 @@ def name_cmp(one, two):
 
 class User(object):
     
-    def __init__(self, name, email, location=None):
+    def __init__(self, name, email, location=None, location_func = None):
         self.name = name
         self.email = email
-        self.location = location
+        self._location = location
+        self._location_func = location_func
+    
+    @property
+    def location(self):
+        if not self._location and self._location_func:
+            self._location = self._location_func()
+        return self._location
     
     def __cmp__(self, other):
         return cmp((self.name, self.email), (other.name, other.email))
@@ -45,7 +52,8 @@ class Users(object):
         return [u for u in self.users if u.email == email][0]
 
     def get_user_by_name(self, name):
-        return [u for u in self.users if name_cmp(u.name, name)][0]
+        user = [u for u in self.users if name_cmp(u.name, name)][0]
+        logger.debug("users: Found user %s when searching for %s" % (u.name, name))
 
 gsm = getGlobalSiteManager()
 gsm.registerUtility(Users())

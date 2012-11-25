@@ -13,6 +13,8 @@ from mr.cabot.sebastian import logger
 
 LINKS = re.compile("<(.*?)>; rel=\"(.*?)\",?")
 
+ALREADY_FOUND = set()
+
 class create(object):
     
     def __init__(self, org):
@@ -24,19 +26,23 @@ class create(object):
         i = 0.0
         for account in accounts:
             i+=1
-            if not (i % 10):
-                logger.info("github: geocoder: %2d%% complete" % ((i/len(accounts))*100.0))
-            gh_api = urllib2.urlopen("https://api.github.com/users/%s?access_token=%s" % (account,token))
+            if account in ALREADY_FOUND:
+                continue
+            url = "https://api.github.com/users/%s?access_token=%s" % (account,token)
+            logger.debug("github: getting %s" % url)
+            gh_api = urllib2.urlopen(url)
             user = json.loads(gh_api.read())
-            try:
-                logger.debug("geocoder: Getting coordinates for %s" % (user['location']))
-                location = geocoder.geocode(user['location'])[0].coordinates
-            except:
-                location = None
-            users.add_user(User(user.get('name', user['login']), user.get('email', None), location))
+            ALREADY_FOUND.add(account)
+            def lazy_location():
+                try:
+                    logger.debug("geocoder: Getting coordinates for %s" % (user['location']))
+                    return geocoder.geocode(user['location'])[0].coordinates
+                except:
+                    return None
+            users.add_user(User(user.get('name', user['login']), user.get('email', None), location_func=lazy_location))
     
-    def get_github_accounts(self):
-        url = "https://api.github.com/orgs/%s/members?access_token=%s" % (self.org, self.token)
+    def get_users(self, token):
+        url = "https://api.github.com/orgs/%s/members?access_token=%s" % (self.org, token)
         while True:
             logger.debug("github: getting %s" % url)
             members_resp = urllib2.urlopen(url)
@@ -52,11 +58,10 @@ class create(object):
             else:
                 logger.info("github: Got %s users for %s" % (len(members), self.org))
                 break
-        return self._get_github_accounts(all_members, self.token)
+        return self._get_github_accounts(all_members, token)
     
     def get_data(self, token, checkout_directory):
         self.token = token
-        self.get_github_accounts()
         
         if checkout_directory == "temp":
             checkout_directory = None
