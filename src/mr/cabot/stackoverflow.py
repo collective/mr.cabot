@@ -1,4 +1,4 @@
-from mr.cabot.interfaces import IGeolocation
+from mr.cabot.interfaces import IGeolocation, IListing
 from zope.component import getGlobalSiteManager, adapts
 from zope.interface import implements
 import calendar
@@ -73,7 +73,7 @@ class SOGeolocation(object):
 
 class SOListing(object):
 	
-    adapts(Message)
+    adapts(Question)
     implements(IListing)
     
     def __init__(self, answer):
@@ -81,14 +81,9 @@ class SOListing(object):
 
     @property
     def summary(self):
-        author = email.utils.parseaddr(self.email.get("From"))[0]
-        subject = self.email.get("Subject")
-        date = self.email.get("Date")
-        return "%s sent the email '%s' at %s" % (author, subject, date)
+        return "Dunno"
 
-gsm = getGlobalSiteManager()
-gsm.registerAdapter(GmaneGeolocation)
-gsm.registerAdapter(GmaneListing)
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(SOGeolocation)
+gsm.registerAdapter(SOListing)
