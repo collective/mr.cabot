@@ -70,7 +70,7 @@ class GmaneGeolocation(object):
 
         recieved = self.email.get_all('Original-Received')
         ips = [IP.findall(h) for h in recieved]
-        ips = [ip[0] for ip in ips if ip and not ip[0].startswith("10.")]
+        ips = [ip[0] for ip in ips if ip and not ip[0].startswith("10.") and not ip[0].startswith("192.168")]
         likely = ips[-1]
         try:
             loc = json.loads(urllib2.urlopen("http://freegeoip.net/json/%s"%likely).read())
