@@ -35,13 +35,10 @@ class Sebastian(object):
         sources = self.get_data_sources()
         data = set()
         for source_id, source in sources.items():
-            try:
-                kwargs = inspect.getargspec(source.get_data).args
-                kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
-                kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-                data |= source.get_data(**kwargs)
-            except:
-                pass
+            kwargs = inspect.getargspec(source.get_data).args
+            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
+            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
+            data |= source.get_data(**kwargs)
         pass
 
     def get_data_sources(self):
