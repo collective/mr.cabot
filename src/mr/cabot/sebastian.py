@@ -12,6 +12,9 @@ import stat
 import subprocess
 import sys
 import textwrap
+import socket
+
+socket.setdefaulttimeout(3)
 
 from mr.cabot.html import html_snippet
 

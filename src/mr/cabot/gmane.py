@@ -45,7 +45,12 @@ class MailingList(object):
     
     def get_data(self, messages):
         messages = int(messages)
-        return {self[item] for item in range(self.latest-(messages-1), self.latest+1)}
+        data = set()
+        for item in range(self.latest-(messages-1), self.latest+1):
+            try:
+                data.add(self[item])
+            except:
+                pass
 
 
 class GmaneGeolocation(object):
