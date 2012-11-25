@@ -151,10 +151,12 @@ class GitListing(object):
 
     @property
     def summary(self):
-        author = self.commit.author[0]
-        subject = self.commit.message[:25]
+        author = self.commit.author[0].decode("utf-8")
+        subject = self.commit.message.decode("utf-8")
+        if len(subject) > 25:
+            subject = subject[:25]+"..."
         date = self.commit.date
-        return "%s committed '%s' to %s on %s" % (author, subject, self.commit.package, date.isoformat())
+        return "%s committed <br />'%s' <br />to %s on %s" % (author, subject, self.commit.package, date.isoformat())
 
 
 gsm = getGlobalSiteManager()

@@ -60,7 +60,7 @@ class Sebastian(object):
         data = {datum for datum in data if datum.date >= ago}
         sorted_data = sorted(data, key=attrgetter('date'))
         for datum in sorted_data:
-            print html_snippet(datum)
+            print html_snippet(datum).encode("ascii", "xmlcharrefreplace")
             
 
     def get_user_sources(self):        
