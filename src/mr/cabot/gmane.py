@@ -1,3 +1,6 @@
+import datetime
+from email.utils import mktime_tz
+from email.utils import parsedate_tz
 import email
 from email.message import Message
 import json
@@ -51,6 +54,7 @@ class MailingList(object):
                 data.add(self[item])
             except:
                 pass
+        return data
 
 
 class GmaneGeolocation(object):
@@ -65,11 +69,11 @@ class GmaneGeolocation(object):
     def coords(self):
         from_ = email.utils.parseaddr(self.email.get("From"))
         try:
-            return getUtility(IUserDatabase).get_user_by_email(from_[1]).coords
+            return getUtility(IUserDatabase).get_user_by_email(from_[1]).location
         except:
             pass
         try:
-            return getUtility(IUserDatabase).get_user_by_name(from_[0]).coords
+            return getUtility(IUserDatabase).get_user_by_name(from_[0]).location
         except:
             pass
 
@@ -90,6 +94,8 @@ class GmaneGeolocation(object):
 
 class GmaneListing(object):
 	
+    __name__ = "mailing-list"
+    
     adapts(Message)
     implements(IListing)
     
@@ -101,7 +107,8 @@ class GmaneListing(object):
         author = email.utils.parseaddr(self.email.get("From"))[0]
         subject = self.email.get("Subject")
         date = self.email.get("Date")
-        return "%s sent the email '%s' at %s" % (author, subject, date)
+        date = datetime.datetime.fromtimestamp(mktime_tz(parsedate_tz(date)))
+        return "%s sent the email <br />'%s' <br />at %s" % (author, subject, date)
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(GmaneGeolocation)

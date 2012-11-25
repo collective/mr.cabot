@@ -112,6 +112,8 @@ class GitGeolocation(object):
 
 class GitListing(object):
 	
+    __name__ = "commit"
+    
     adapts(Commit)
     implements(IListing)
     
@@ -123,7 +125,7 @@ class GitListing(object):
         author = self.commit.author[0]
         subject = self.commit.message[:25]
         date = self.commit.date
-        return "%s committed '%s' to %s at %s" % (author, subject, self.commit.package, date)
+        return "%s committed '%s' to %s on %s" % (author, subject, self.commit.package, date.isoformat())
 
 
 gsm = getGlobalSiteManager()

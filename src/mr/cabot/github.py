@@ -15,13 +15,26 @@ LINKS = re.compile("<(.*?)>; rel=\"(.*?)\",?")
 
 ALREADY_FOUND = set()
 
+
+def lazy_location(user):
+    geocoder = ggeocoder.Geocoder()
+    def get_location():
+        if not user.get("location", None):
+            return None
+        try:
+            logger.debug("geocoder: Getting coordinates for %s" % (user['location']))
+            return geocoder.geocode(user['location'])[0].coordinates
+        except:
+            return None
+    return get_location
+
+
 class create(object):
     
     def __init__(self, org):
         self.org = org
     
     def _get_github_accounts(self, accounts, token):
-        geocoder = ggeocoder.Geocoder()
         users = getUtility(IUserDatabase)
         i = 0.0
         for account in accounts:
@@ -33,13 +46,7 @@ class create(object):
             gh_api = urllib2.urlopen(url)
             user = json.loads(gh_api.read())
             ALREADY_FOUND.add(account)
-            def lazy_location():
-                try:
-                    logger.debug("geocoder: Getting coordinates for %s" % (user['location']))
-                    return geocoder.geocode(user['location'])[0].coordinates
-                except:
-                    return None
-            users.add_user(User(user.get('name', user['login']), user.get('email', None), location_func=lazy_location))
+            users.add_user(User(user.get('name', user['login']), user.get('email', None), location_func=lazy_location(user)))
     
     def get_users(self, token):
         url = "https://api.github.com/orgs/%s/members?access_token=%s" % (self.org, token)

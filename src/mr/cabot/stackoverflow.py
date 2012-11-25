@@ -91,6 +91,8 @@ class SOGeolocation(object):
 
 class SOAnswerListing(object):
 	
+    __name__ = "answer"
+    
     adapts(Answer)
     implements(IListing)
     
