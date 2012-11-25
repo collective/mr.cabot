@@ -16,8 +16,9 @@ def create(url):
 
 class Commit(object):
     
-    def __init__(self, kwargs):
+    def __init__(self, kwargs, package):
         self.__dict__.update(kwargs)
+        self.package = package
 
 class GitRepo(object):
     
@@ -73,7 +74,7 @@ class GitRepo(object):
             data['author'] = parseaddr(data['author'])
         except KeyError:
             data['author'] = ('','')
-        return Commit(data)
+        return Commit(data, package=self.package)
     
     def get_data(self):
         now = datetime.datetime.now()
