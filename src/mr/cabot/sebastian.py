@@ -3,6 +3,7 @@ from ConfigParser import SafeConfigParser
 import atexit
 import pkg_resources
 import errno
+import inspect
 import logging
 import os
 import re
@@ -32,6 +33,16 @@ class Sebastian(object):
 
     def generate_map(self):
         sources = self.get_data_sources()
+        data = set()
+        for source_id, source in sources.items():
+            try:
+                kwargs = inspect.getargspec(source.get_data).args
+                kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
+                kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
+                data |= source.get_data(**kwargs)
+            except:
+                pass
+        pass
 
     def get_data_sources(self):
         source_ids = self.config.get("cabot", "sources").split()
@@ -41,8 +52,7 @@ class Sebastian(object):
             source_class = "mr.cabot.%s" % (source_class)
             kls = __import__(source_class, globals(), locals(), ['create'], -1)
             found[source_id] = kls.create(self.config.get(source_id, 'key'))
-        import pdb; pdb.set_trace()
-        pass
+        return found
 
     def __call__(self, **kwargs):
         logger.setLevel(logging.INFO)
