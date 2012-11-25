@@ -21,15 +21,28 @@ class Commit(object):
 
 class GitRepo(object):
     
-    def __init__(self, url):
+    def __init__(self, url, location=None):
         self.url = url
-        self.location = self._directory = tempfile.mkdtemp()
-        self._git_command("clone", self.url)
-        self.package = os.listdir(self._directory)[0]
-        self.location = os.path.join(self._directory, self.package)
+        if location is None:
+            self.location = self._directory = tempfile.mkdtemp()
+            self._git_command("clone", self.url)
+            self.package = os.listdir(self._directory)[0]
+            self.location = os.path.join(self._directory, self.package)
+            self.remove = True
+        else:
+            location = os.path.normpath(os.path.realpath(location))
+            if not os.path.exists(location):
+                # First time!
+                self.location = os.path.split(location)[0]
+                self._git_command("clone", self.url)
+            self.location = location
+            self.package = os.path.split(location)[-1]
+            self._git_command("pull")
+            self.remove = False
     
     def __del__(self):
-        shutil.rmtree(self._directory)
+        if self.remove:
+            shutil.rmtree(self._directory)
         
     def _git_command(self, *args):
         cwd = os.getcwd()
