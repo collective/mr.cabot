@@ -38,7 +38,13 @@ class GitRepo(object):
                 self._git_command("clone", self.url)
             self.location = location
             self.package = os.path.split(location)[-1]
-            self._git_command("pull")
+            try:
+                pulled = self._git_command("pull")
+            except:
+                if "no such ref was fetched" in pulled:
+                    pass
+                else:
+                    raise
             self.remove = False
     
     def __del__(self):
