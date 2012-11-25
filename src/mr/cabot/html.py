@@ -9,7 +9,7 @@ def html_snippet(obj):
     listing = IListing(obj)
     listing_type = listing.__name__
     content = listing.summary
-    if lat > 0:
+    if lon < 0:
         hemi = "west"
     else:
         hemi = "east"

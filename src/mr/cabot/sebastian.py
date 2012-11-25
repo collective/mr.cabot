@@ -7,6 +7,7 @@ import errno
 import inspect
 import logging
 import os
+from operator import attrgetter
 import re
 import shutil
 import stat
@@ -57,7 +58,8 @@ class Sebastian(object):
         day_filter = int(self.config.get("cabot", "days", "5"))
         ago = datetime.datetime.now() - datetime.timedelta(days=day_filter)
         data = {datum for datum in data if datum.date >= ago}
-        for datum in data:
+        sorted_data = sorted(data, key=attrgetter('date'))
+        for datum in sorted_data:
             print html_snippet(datum)
             
 
