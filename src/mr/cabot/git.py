@@ -128,3 +128,4 @@ class GitListing(object):
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(GitGeolocation)
+gsm.registerAdapter(GitListing)
