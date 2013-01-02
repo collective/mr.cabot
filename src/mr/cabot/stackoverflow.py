@@ -77,9 +77,9 @@ class SOGeolocation(object):
         user = self.answer.owner['user_id']
         url = "https://api.stackexchange.com/2.1/users/%s?site=stackoverflow"
         url %= (user)
-        resp = urllib2.urlopen(url).read()
-        resp = gzip.GzipFile(fileobj=StringIO(resp)).read()
         try:
+            resp = urllib2.urlopen(url).read()
+            resp = gzip.GzipFile(fileobj=StringIO(resp)).read()
             user = json.loads(resp)['items'][0]
         except:
             return None

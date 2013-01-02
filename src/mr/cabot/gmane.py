@@ -27,7 +27,10 @@ class MailingList(object):
     
     @property
     def gmane(self):
-        gmane = NNTP("news.gmane.org")
+        try:
+            gmane = NNTP("news.gmane.org")
+        except:
+            return self.gmane
         gmane.group(self.group)
         return gmane
     
