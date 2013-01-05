@@ -18,7 +18,8 @@ import socket
 
 socket.setdefaulttimeout(3)
 
-from mr.cabot.html import join
+#from mr.cabot.html import join
+from mr.cabot.googlestaticmap import join
 
 logger = logging.getLogger("mr.cabot")
 
