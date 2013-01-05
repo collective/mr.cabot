@@ -32,27 +32,20 @@ def find_base():
 
 class Sebastian(object):
 
-    def generate_map(self):
-        users = self.get_user_sources()
-        for source_id, source in users.items():
-            kwargs = inspect.getargspec(source.get_users).args
-            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
-            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-            local_data = source.get_users(**kwargs)
-        
+    def generate_data(self):
         sources = self.get_data_sources()
-        data = set()
+        self.data = set()
         for source_id, source in sources.items():
             kwargs = inspect.getargspec(source.get_data).args
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
             kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
             local_data = source.get_data(**kwargs)
-            data |= local_data
+            self.data |= local_data
         
         day_filter = int(self.config.get("cabot", "days", "5"))
         ago = datetime.datetime.now() - datetime.timedelta(days=day_filter)
-        data = {datum for datum in data if datum.date >= ago}
-        sorted_data = sorted(data, key=attrgetter('date'))
+        self.data = {datum for datum in self.data if datum.date >= ago}
+        sorted_data = sorted(self.data, key=attrgetter('date'))
         
         data_directory = os.path.join(find_base(), "var", "data")
         if not os.path.exists(data_directory):
@@ -61,8 +54,17 @@ class Sebastian(object):
         base_path = os.path.join(data_directory, today.isoformat())
         with open(base_path+".pickle", "wb") as todays_source:
             todays_source.write(pickle.dumps(sorted_data))
-        
-        print join(sorted_data)
+        return sorted_data
+    
+    def generate_map(self, data):
+        users = self.get_user_sources()
+        if not hasattr(self, 'data'):
+            for source_id, source in users.items():
+                kwargs = inspect.getargspec(source.get_users).args
+                kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
+                kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
+                source.get_users(**kwargs)        
+        print join(data)
             
 
     def get_user_sources(self):        
@@ -93,8 +95,10 @@ class Sebastian(object):
         self.parser = argparse.ArgumentParser()
         version = pkg_resources.get_distribution("mr.cabot").version
         self.parser.add_argument('-v', '--version',
-                                 action='version',
-                                 version='mr.cabot %s' % version)
+                    action='version',
+                    version='mr.cabot %s' % version)
+        self.parser.add_argument('--pickle', 
+                    help="path to the file where old pickled data is stored")
         args = self.parser.parse_args()
         try:
             self.buildout_dir = find_base()
@@ -107,6 +111,14 @@ class Sebastian(object):
         self.config = SafeConfigParser()
         self.config.read(os.path.join(self.buildout_dir, "mr.cabot.cfg"))        
         
-        self.generate_map()
+        if args.pickle is None:
+            # Load the user and sources to set up adapters            
+            data = self.generate_data()
+        else:
+            self.get_data_sources()
+            with open(args.pickle, "rb") as picklefile:
+                data = pickle.loads(picklefile.read())
+        
+        self.generate_map(data)
 
 sebastian = Sebastian()
