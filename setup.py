@@ -8,6 +8,7 @@ install_requires = [
   'zope.interface',
   'zope.component',
   'ggeocoder',
+  'simplekml',
 ]
 
 setup(name='mr.cabot',
