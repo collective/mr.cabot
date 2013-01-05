@@ -1,5 +1,7 @@
 from mr.cabot.interfaces import IListing, IGeolocation
 
+join = "\n\n".join
+
 def html_snippet(obj):
     loc = IGeolocation(obj).coords
     if not loc:

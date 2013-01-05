@@ -18,7 +18,7 @@ import socket
 
 socket.setdefaulttimeout(3)
 
-from mr.cabot.html import html_snippet
+from mr.cabot.html import join
 
 logger = logging.getLogger("mr.cabot")
 
@@ -59,8 +59,9 @@ class Sebastian(object):
         ago = datetime.datetime.now() - datetime.timedelta(days=day_filter)
         data = {datum for datum in data if datum.date >= ago}
         sorted_data = sorted(data, key=attrgetter('date'))
-        for datum in sorted_data:
-            print html_snippet(datum).encode("ascii", "xmlcharrefreplace")
+        #for datum in sorted_data:
+        #    print html_snippet(datum).encode("ascii", "xmlcharrefreplace")
+        print join(sorted_data)
             
 
     def get_user_sources(self):        
