@@ -53,8 +53,6 @@ class Sebastian(object):
         ago = datetime.datetime.now() - datetime.timedelta(days=day_filter)
         data = {datum for datum in data if datum.date >= ago}
         sorted_data = sorted(data, key=attrgetter('date'))
-        #for datum in sorted_data:
-        #    print html_snippet(datum).encode("ascii", "xmlcharrefreplace")
         
         data_directory = os.path.join(find_base(), "var", "data")
         if not os.path.exists(data_directory):
