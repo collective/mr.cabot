@@ -23,5 +23,4 @@ def static_map_marker(obj):
     listing = IListing(obj)
     listing_type = listing.__name__
     colour = colors[listing_type]
-    print lat, lon, listing.summary
     return urllib.quote('color:%s|size:tiny|label:%s|%f,%f' % (colour, listing_type[0].upper(), lat, lon))
