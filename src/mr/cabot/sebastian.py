@@ -11,8 +11,10 @@ import socket
 
 socket.setdefaulttimeout(3)
 
+join = None
+
 #from mr.cabot.html import join
-from mr.cabot.googlestaticmap import join
+#from mr.cabot.googlestaticmap import join
 
 logger = logging.getLogger("mr.cabot")
 
@@ -107,8 +109,14 @@ class Sebastian(object):
                     version='mr.cabot %s' % version)
         self.parser.add_argument('--pickle',
                     help="path to the file where old pickled data is stored")
+        self.parser.add_argument('--output',
+                    action="store", default="googlestaticmap")
         self.parser.add_argument("-N", help="No updates, don't pull any git repos, use the caches", action="store_true")
         args = self.parser.parse_args()
+        
+        global join
+        join = __import__("mr.cabot.%s" % args.output, globals(), locals(), ['join'], -1).join
+        
         try:
             self.buildout_dir = find_base()
         except IOError, e:

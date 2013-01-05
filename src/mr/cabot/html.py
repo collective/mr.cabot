@@ -1,6 +1,8 @@
 from mr.cabot.interfaces import IListing, IGeolocation
 
-join = "\n\n".join
+def join(objs):
+    objs = [html_snippet(obj) for obj in objs]
+    return "\n\n".join(objs)
 
 def html_snippet(obj):
     loc = IGeolocation(obj).coords
