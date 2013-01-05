@@ -10,11 +10,20 @@ colors = {"commit": "green", "mailing-list": "blue", "answer": "yellow"}
 def join(objs):
     markers = ""
     unique_locations = set()
+    activities = []
     for obj in objs:
         loc = IGeolocation(obj).coords
         if loc not in unique_locations:
             unique_locations.add(loc)
-            markers += "&markers=%s" % static_map_marker(obj)
+            activities.append(obj)
+    
+    name=lambda x:x.__class__.__name__
+    by_type = itertools.groupby(sorted(activities, key=name),key=name)
+    for t,objs in by_type:
+        m = static_map_marker(objs)
+        if m is not None:
+            markers += "&markers=%s" % m
+    
     image_location = "http://maps.googleapis.com/maps/api/staticmap?size=600x300&maptype=terrain%s&sensor=false&center=tripoli" % (markers)
     try:
         image = urllib.urlopen(image_location).read()
@@ -31,13 +40,17 @@ def join(objs):
     return image_location
     
 
-def static_map_marker(obj):
-    loc = IGeolocation(obj).coords
-    if not loc:
-        return ''
-    else:
-        lat, lon = loc
-    listing = IListing(obj)
-    listing_type = listing.__name__
-    colour = colors[listing_type]
-    return urllib.quote('color:%s|size:tiny|%.1f,%.1f' % (colour, lat, lon))
+def static_map_marker(objs):
+    locations = []
+    for obj in objs:
+        loc = IGeolocation(obj).coords
+        if not loc:
+            continue
+        else:
+            locations.append(loc)
+    if locations:
+        listing = IListing(obj)
+        listing_type = listing.__name__
+        colour = colors[listing_type]
+        locations = "|".join("%.1f,%.1f" % (l[0],l[1]) for l in locations)
+        return urllib.quote('color:%s|size:tiny|%s' % (colour, locations))
