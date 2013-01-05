@@ -14,6 +14,8 @@ from zope.interface import implements
 from mr.cabot.interfaces import IGeolocation, IListing, IUserDatabase
 from mr.cabot.sebastian import logger
 
+BLOCKED_COMMANDS = set()
+
 def create(url):
 	return GitRepo(url)
 
@@ -66,6 +68,8 @@ class GitRepo(object):
             shutil.rmtree(self._directory)
         
     def _git_command(self, *args):
+        if args[0] in BLOCKED_COMMANDS:
+            return
         cwd = os.getcwd()
         try:
             return subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT, cwd=self.location)

@@ -105,8 +105,9 @@ class Sebastian(object):
         self.parser.add_argument('-v', '--version',
                     action='version',
                     version='mr.cabot %s' % version)
-        self.parser.add_argument('--pickle', 
+        self.parser.add_argument('--pickle',
                     help="path to the file where old pickled data is stored")
+        self.parser.add_argument("-N", help="No updates, don't pull any git repos, use the caches", action="store_true")
         args = self.parser.parse_args()
         try:
             self.buildout_dir = find_base()
@@ -115,6 +116,11 @@ class Sebastian(object):
             print
             logger.error("You are not in a path which has mr.cabot installed (%s)." % e)
             return
+        
+        if args.N:
+            import git
+            git.BLOCKED_COMMANDS.add("pull")
+            git.BLOCKED_COMMANDS.add("fetch")
         
         self.config = SafeConfigParser()
         self.config.read(os.path.join(self.buildout_dir, "mr.cabot.cfg"))        
