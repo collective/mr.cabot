@@ -1,56 +1,86 @@
+About
+-----
+
+mr.cabot is a tool for allowing software projects to map where their contributions are coming from. It reads data form common sources like GitHub, gmane and stackoverflow and attempts to locate where those contributors are physically located.
+
 Basic usage
 -----------
 
-You need to create a `mr.cabot.cfg` file in your buildout directory with the
-following info:
+You need to customise your `mr.cabot.cfg` config file to match your software project. The basic format is that the `sources` line lists the sections that supply lists of contributors and `users` lists the sections that supply lists of contributors.
 
-.. code :: 
+Only the GitHub sources support user enumeration at the moment, but stackoverflow and gmane both extract geolocation information where possible.
 
-	[cabot]
-	sources =
-		plone-users
-		plone-developers
-		product-developers
-		stackoverflow
-		github-core
-		github-collective
+Example
+-------
 
-	[github-collective]
-	type = github
-	key = collective
-	token = YOUR_GITHUB_OAUTH_TOKEN
-	checkout_directory = ./var/github-collective
+The current example from the Plone project generates the following:
 
-	[github-core]
-	type = github
-	key = plone
-	token = YOUR_GITHUB_OAUTH_TOKEN
-	checkout_directory = ./var/github-core
+.. image :: http://dist.plone.org/media/contributormaps/latest.png
 
-	[plone-users]
-	type = gmane
-	key = gmane.comp.web.zope.plone.user
-	messages = 5
+Source types
+------------
 
-	[plone-developers]
-	type = gmane
-	key = gmane.comp.web.zope.plone.devel
-	messages = 5
+github
+======
 
-	[product-developers]
-	type = gmane
-	key = gmane.comp.web.zope.plone.product-developers
-	messages = 5
+type
+	github
+key
+	the name of the organisation to be scanned
+token
+	an oauth token, preferably one with the `repo` scope. See https://help.github.com/articles/creating-an-oauth-token-for-command-line-use
+checkout_directory
+	an existing directory to cache checkouts in to save on bandwidth
 
-	[stackoverflow]
-	type = stackoverflow
-	key = plone
-	days = 5
+git
+===
 
-github oauth token generation is coming soon, but there is info on their API on
-how to do it for now.
+type
+	git
+key
+	a clone url of a git repository
 
-You need to create var/github-collective etc yourself, if it's missing it will
-use a tempdir and have to redownload every time.
+stackoverflow
+=============
 
-You can generate the HTML snippets with `./bin/cabot > snippets.html`
+type
+	stackoverflow
+key
+	a tag used on stack overflow
+days
+	the number of days of history to download
+
+gmane
+=====
+
+type
+	gmane
+key
+	the full gmane newsgroup name
+messages
+	downloads the last x messages
+
+Output types
+------------
+
+Output type defaults to a google static map, but can be selected using `--output type` on the command line.
+
+The available options are:
+
+* googlestaticmap
+* html
+* kml
+
+Caching
+-------
+
+No caching of geolocation data is included as yet, but data runs are cached under `var/data`, with the filename `yyyy-mm-dd.pickle`. This allows you to re-run old data sets if you are changing display methods.
+
+To load a pickle instead of re-scanning use the --pickle command line option::
+
+  ./bin/cabot --pickle ./var/data/2013-01-05.pickle --output kml
+
+Additionally, there is a command line option to skip pulling git repositories. This is useful for re-running when you are tweaking the config file initially, as updating git is the slowest section::
+
+  ./bin/cabot -N --output kml
+
