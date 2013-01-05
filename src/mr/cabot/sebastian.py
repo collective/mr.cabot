@@ -1,19 +1,10 @@
 import argparse
 from ConfigParser import SafeConfigParser
-import atexit
 import datetime
-import pkg_resources
-import errno
 import inspect
 import logging
 import os
 from operator import attrgetter
-import re
-import shutil
-import stat
-import subprocess
-import sys
-import textwrap
 import socket
 
 socket.setdefaulttimeout(3)
