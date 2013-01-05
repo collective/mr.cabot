@@ -33,8 +33,16 @@ def find_base():
 class Sebastian(object):
 
     def generate_data(self):
+        users = self.get_user_sources()
         sources = self.get_data_sources()
         self.data = set()
+        
+        for source_id, source in users.items():
+            kwargs = inspect.getargspec(source.get_users).args
+            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
+            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
+            source.get_users(**kwargs)        
+
         for source_id, source in sources.items():
             kwargs = inspect.getargspec(source.get_data).args
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
