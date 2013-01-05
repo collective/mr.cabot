@@ -5,6 +5,8 @@ import inspect
 import logging
 import os
 from operator import attrgetter
+import pickle
+import pkg_resources
 import socket
 
 socket.setdefaulttimeout(3)
@@ -53,6 +55,15 @@ class Sebastian(object):
         sorted_data = sorted(data, key=attrgetter('date'))
         #for datum in sorted_data:
         #    print html_snippet(datum).encode("ascii", "xmlcharrefreplace")
+        
+        data_directory = os.path.join(find_base(), "var", "data")
+        if not os.path.exists(data_directory):
+            os.mkdir(data_directory)
+        today = datetime.datetime.now().date()
+        base_path = os.path.join(data_directory, today.isoformat())
+        with open(base_path+".pickle", "wb") as todays_source:
+            todays_source.write(pickle.dumps(sorted_data))
+        
         print join(sorted_data)
             
 
