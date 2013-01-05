@@ -12,7 +12,7 @@ def join(objs):
         if loc not in unique_locations:
             unique_locations.add(loc)
             markers += "&markers=%s" % static_map_marker(obj)
-    return "https://maps.googleapis.com/maps/api/staticmap?size=600x300&maptype=terrain%s&sensor=false" % (markers)
+    return "https://maps.googleapis.com/maps/api/staticmap?size=600x300&maptype=terrain%s&sensor=false&center=tripoli" % (markers)
 
 def static_map_marker(obj):
     loc = IGeolocation(obj).coords
