@@ -13,9 +13,6 @@ socket.setdefaulttimeout(3)
 
 join = None
 
-#from mr.cabot.html import join
-#from mr.cabot.googlestaticmap import join
-
 logger = logging.getLogger("mr.cabot")
 
 def find_base():
