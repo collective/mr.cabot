@@ -15,6 +15,10 @@ LINKS = re.compile("<(.*?)>; rel=\"(.*?)\",?")
 
 ALREADY_FOUND = set()
 
+ORDERED_TYPES = ["country", "administrative_area_level_1", 
+    "administrative_area_level_2", "administrative_area_level_3", 
+    "colloquial_area", "locality", "sublocality", "neighbourhood", 
+    "postal_code", "premise"]
 
 def lazy_location(user):
     geocoder = ggeocoder.Geocoder()
@@ -22,11 +26,15 @@ def lazy_location(user):
         if not user.get("location", None):
             return None
         try:
-            coords = geocoder.geocode(user['location'])[0].coordinates
+            result = geocoder.geocode(user['location'])[0]
+            coords = result.coordinates
             logger.debug("geocoder: Getting coordinates for user %s at %s == %s" % (user['login'], user['location'], `coords`))
-            return coords
+            types = result.data['types']
+            interesting_types = [t for t in types if t in ORDERED_TYPES]
+            quality = max([ORDERED_TYPES.index(t) for t in interesting_types])
+            return coords, quality
         except:
-            return None
+            return None, None
     return get_location
 
 

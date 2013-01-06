@@ -23,19 +23,35 @@ def name_cmp(one, two):
             diffs += 1
     return diffs <= 2
 
+def location_match_quality(geocode_result):
+    import pdb; pdb.set_trace()
+
 class User(object):
     
-    def __init__(self, name, email, location=None, location_func = None):
+    def __init__(self, name, email, location=None, location_func=None):
         self.name = name
         self.email = email
         self._location = location
-        self._location_func = location_func
+        self._location_func = [location_func]
+    
+    def _get_location(self):
+        if not self._location:
+            while self._location_func:
+                lf = self._location_func.pop()
+                location = lf()
+                if location[1] > self.location_quality:
+                    self._location = location
+        return self._location
     
     @property
     def location(self):
-        if not self._location and self._location_func:
-            self._location = self._location_func()
-        return self._location
+        return self._get_location()[0]
+    
+    @property
+    def location_quality(self):
+        if self._location is None:
+            return None
+        return self._get_location()[1]
     
     def __cmp__(self, other):
         return cmp((self.name, self.email), (other.name, other.email))
@@ -51,7 +67,12 @@ class Users(object):
         self.users = set()
     
     def add_user(self, user):
-        self.users.add(user)
+        if user in self.users:
+            existing = self.get_user_by_email(user.email)
+            # Merge in new location functions
+            existing._location_func += user._location_func
+        else:
+            self.users.add(user)
     
     def get_user_by_email(self, email):
         return [u for u in self.users if u.email == email][0]
