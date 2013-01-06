@@ -35,16 +35,11 @@ def find_base():
 class Sebastian(object):
 
     def generate_data(self):
-        users = self.get_user_sources()
-        sources = self.get_data_sources()
-        self.data = set()
+        self.populate_user_database()
         
-        for source_id, source in users.items():
-            kwargs = inspect.getargspec(source.get_users).args
-            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
-            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-            source.get_users(**kwargs)        
-
+        self.data = set()
+        sources = self._get_sources_by_type("sources")
+        
         for source_id, source in sources.items():
             kwargs = inspect.getargspec(source.get_data).args
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
@@ -67,28 +62,23 @@ class Sebastian(object):
         return sorted_data
     
     def generate_map(self, data):
-        users = self.get_user_sources()
         if not hasattr(self, 'data'):
-            for source_id, source in users.items():
-                kwargs = inspect.getargspec(source.get_users).args
-                kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
-                kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-                source.get_users(**kwargs)        
+            self.populate_user_database()
         print join(data)
-            
+    
+    def populate_user_database(self):
+        """Go through the sources that can enumerate users and populate our
+        database so we can search against it.
+        """
+        users = self._get_sources_by_type("users")
+        for source_id, source in users.items():
+            kwargs = inspect.getargspec(source.get_users).args
+            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
+            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
+            source.get_users(**kwargs)
 
-    def get_user_sources(self):        
-        source_ids = self.config.get("cabot", "users").split()
-        found = {}
-        for source_id in source_ids:
-            source_class = self.config.get(source_id, "type")
-            source_class = "mr.cabot.%s" % (source_class)
-            kls = __import__(source_class, globals(), locals(), ['create'], -1)
-            found[source_id] = kls.create(self.config.get(source_id, 'key'))
-        return found
-
-    def get_data_sources(self):        
-        source_ids = self.config.get("cabot", "sources").split()
+    def _get_sources_by_type(self, type):
+        source_ids = self.config.get("cabot", type).split()
         found = {}
         for source_id in source_ids:
             source_class = self.config.get(source_id, "type")
@@ -137,7 +127,7 @@ class Sebastian(object):
             # Load the user and sources to set up adapters            
             data = self.generate_data()
         else:
-            self.get_data_sources()
+            self._get_sources_by_type("sources")
             with open(args.pickle, "rb") as picklefile:
                 data = pickle.loads(picklefile.read())
         
