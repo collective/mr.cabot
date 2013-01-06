@@ -74,7 +74,7 @@ class create(object):
         if checkout_directory == "temp":
             checkout_directory = None
         
-        url = "https://api.github.com/orgs/%s/repos?access_token=%s" % (self.org, self.token)
+        url = "https://api.github.com/orgs/%s/repos?access_token=%s&type=public" % (self.org, self.token)
         self.repos = {}
         while True:
             logger.debug("github: getting %s" % url)
