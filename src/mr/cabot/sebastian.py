@@ -9,7 +9,7 @@ import pickle
 import pkg_resources
 import socket
 
-socket.setdefaulttimeout(15)
+socket.setdefaulttimeout(25)
 
 join = None
 
