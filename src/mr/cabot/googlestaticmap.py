@@ -6,7 +6,7 @@ import itertools
 from mr.cabot.interfaces import IListing, IGeolocation
 import sebastian
 
-colors = {"commit": "green", "mailing-list": "blue", "answer": "yellow"}
+colors = {"commit": "green", "mailing-list": "blue", "answer": "yellow", "issue": "red"}
 
 def join(objs):
     markers = ""

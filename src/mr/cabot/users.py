@@ -28,9 +28,10 @@ def location_match_quality(geocode_result):
 
 class User(object):
     
-    def __init__(self, name, email, location=None, location_func=None):
+    def __init__(self, name, email, username=None, location=None, location_func=None):
         self.name = name
         self.email = email
+        self.username = username
         self._location = location
         self._location_func = [location_func]
     
@@ -91,6 +92,12 @@ class Users(object):
         return [u for u in self.users if u.email == email][0]
 
     def get_user_by_name(self, name):
+        user = [u for u in self.users if name == u.username]
+        if user:
+            user = user[0]
+            logger.debug("users: Found user %s when searching for %s by exact username match" % (user.name, name))
+            return user
+
         user = [u for u in self.users if name_cmp(u.name, name)][0]
         logger.debug("users: Found user %s when searching for %s" % (user.name, name))
         return user

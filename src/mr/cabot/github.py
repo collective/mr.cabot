@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -5,7 +6,9 @@ import urllib2
 
 import ggeocoder
 from zope.component import getUtility
+from zope.interface import implements
 
+from mr.cabot.interfaces import IGeolocation, IListing
 from mr.cabot.interfaces import IUserDatabase
 from mr.cabot.git import GitRepo
 from mr.cabot.users import User
@@ -57,7 +60,7 @@ class create(object):
             gh_api = urllib2.urlopen(url)
             user = json.loads(gh_api.read())
             ALREADY_FOUND.add(account)
-            users.add_user(User(user.get('name', user['login']), user.get('email', None), location_func=lazy_location(user)))
+            users.add_user(User(user.get('name', user['login']), user.get('email', None), username=user['login'], location_func=lazy_location(user)))
     
     def get_users(self, token):
         url = "https://api.github.com/orgs/%s/members?access_token=%s" % (self.org, token)
@@ -80,10 +83,28 @@ class create(object):
     
     def get_data(self, token, checkout_directory):
         self.token = token
+        data = set()
         
         if checkout_directory == "temp":
             checkout_directory = None
         
+        five_days_ago = (datetime.datetime.now() - datetime.timedelta(days=5)).date().isoformat()
+        url = "https://api.github.com/orgs/%s/issues?access_token=%s&filter=all&since=%s" % (self.org, self.token, five_days_ago)
+        while True:
+            logger.debug("github: getting %s" % url)
+            issues_resp = urllib2.urlopen(url)
+            issues = json.loads(issues_resp.read())
+            for issue in issues:
+                data.add(Issue(issue))
+            links = LINKS.findall(issues_resp.headers.get('Link', ''))
+            links = {link[1]:link[0] for link in links}
+            if 'next' in links:
+                logger.debug("github: %s has too many issues, requesting more" % (self.org))
+                url = links['next']
+            else:
+                logger.info("github: Got all issues for %s" % (self.org))
+                break
+
         url = "https://api.github.com/orgs/%s/repos?access_token=%s&type=public" % (self.org, self.token)
         self.repos = {}
         while True:
@@ -107,9 +128,36 @@ class create(object):
             else:
                 logger.info("github: Got all repos for %s" % (self.org))
                 break
-        data = set()
         logger.debug("github: Got data for %d repos in %s" % (len(self.repos), self.org))
         for repo in self.repos.values():
             data |= repo.get_data()
         return data
+
+class Issue(object):
+    implements(IGeolocation, IListing)
     
+    __name__ = "issue"
+    
+    def __init__(self, data):
+        self.data = data
+    
+    @property
+    def date(self):
+        date = self.data['updated_at']
+        date_components = map(int, date.split("T")[0].split("-"))
+        date = datetime.date(*date_components)
+        return datetime.datetime.combine(date, datetime.time(0,0))
+        
+    
+    @property
+    def coords(self):
+        users = getUtility(IUserDatabase)
+        try:
+            author = users.get_user_by_name(self.data['user']['login'])
+            return author.location
+        except:
+            return None
+    
+    @property
+    def summary(self):
+        return self.data['title']
