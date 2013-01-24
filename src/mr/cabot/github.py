@@ -28,10 +28,12 @@ def lazy_location(user):
         try:
             result = geocoder.geocode(user['location'])[0]
             coords = result.coordinates
-            logger.debug("geocoder: Getting coordinates for user %s at %s == %s" % (user['login'], user['location'], `coords`))
             types = result.data['types']
             interesting_types = [t for t in types if t in ORDERED_TYPES]
             quality = max([ORDERED_TYPES.index(t) for t in interesting_types])
+            if not quality:
+                quality = 1 # We trust github more than geoip
+            logger.debug("geocoder: Getting coordinates for user %s at %s == %s (%s)" % (user['login'], user['location'], `coords`, " ".join(interesting_types)))
             return coords, quality
         except:
             return None, None

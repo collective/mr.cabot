@@ -2,6 +2,7 @@ import datetime
 from email.utils import mktime_tz
 from email.utils import parsedate_tz
 import email
+from email.Header import decode_header
 from email.message import Message
 import json
 from nntplib import NNTP
@@ -14,6 +15,7 @@ from zope.interface import implements
 
 from mr.cabot.interfaces import IGeolocation, IUserDatabase, IListing
 from mr.cabot.sebastian import logger
+from mr.cabot.users import User
 
 IP = re.compile("\d+\.\d+\.\d+\.\d+")
 
@@ -49,6 +51,7 @@ class MailingList(object):
         message = "\n".join(article[-1])
         mail = email.message_from_string(message)
         mail.date=datetime.datetime.fromtimestamp(mktime_tz(parsedate_tz(mail['date'])))
+        self.add_sender(mail)
         return mail
 
     
@@ -61,6 +64,31 @@ class MailingList(object):
             except:
                 pass
         return data
+    
+    def add_sender(self, message):
+        def email_location():
+            recieved = message.get_all('Original-Received')
+            ips = [IP.findall(h) for h in recieved]
+            ips = [ip[0] for ip in ips if ip and not ip[0].startswith("10.") and not ip[0].startswith("192.168")]
+            likely = ips[-1]
+            try:
+                logger.info("geocoder: Getting location for %s" % (likely))
+                url = "http://freegeoip.net/json/%s"%likely
+                logger.debug("geocoder: Fetching %s" % (url))
+                loc = json.loads(urllib2.urlopen(url).read())
+                ll = float(loc['latitude']), float(loc['longitude'])
+                if any(ll):
+                    return ll, 0
+            except:
+                pass
+        users = getUtility(IUserDatabase)
+        from_ = list(email.utils.parseaddr(message.get("From")))
+        
+        # Remove quoted printable
+        from_[0] = decode_header(from_[0])[0]
+        from_[0] = from_[0][0].decode(from_[0][1])
+        
+        users.add_user(User(from_[0], from_[1], location_func=email_location))
 
 
 class GmaneGeolocation(object):
@@ -73,7 +101,12 @@ class GmaneGeolocation(object):
     
     @property
     def coords(self):
-        from_ = email.utils.parseaddr(self.email.get("From"))
+        from_ = list(email.utils.parseaddr(self.email.get("From")))
+        
+        # Remove quoted printable
+        from_[0] = decode_header(from_[0])[0]
+        from_[0] = from_[0][0].decode(from_[0][1])
+        
         try:
             return getUtility(IUserDatabase).get_user_by_email(from_[1]).location
         except:
@@ -82,21 +115,6 @@ class GmaneGeolocation(object):
             return getUtility(IUserDatabase).get_user_by_name(from_[0]).location
         except:
             pass
-
-        recieved = self.email.get_all('Original-Received')
-        ips = [IP.findall(h) for h in recieved]
-        ips = [ip[0] for ip in ips if ip and not ip[0].startswith("10.") and not ip[0].startswith("192.168")]
-        likely = ips[-1]
-        try:
-            logger.info("geocoder: Getting location for %s" % (likely))
-            url = "http://freegeoip.net/json/%s"%likely
-            logger.debug("geocoder: Fetching %s" % (url))
-            loc = json.loads(urllib2.urlopen(url).read())
-            ll = float(loc['latitude']), float(loc['longitude'])
-            if any(ll):
-                return ll
-        except:
-            return None
 
 class GmaneListing(object):
 	

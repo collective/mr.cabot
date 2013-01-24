@@ -34,18 +34,27 @@ class User(object):
         self._location = location
         self._location_func = [location_func]
     
+    def __repr__(self):
+        prefix = ""
+        if self._location is not None:
+            prefix = "Geolocated"
+        return "<%sUser %s at %s>" % (prefix, self.name, self.email)
+    
     def _get_location(self):
         if not self._location:
             while self._location_func:
                 lf = self._location_func.pop()
                 location = lf()
-                if location[1] > self.location_quality:
+                if location and location[1] > self.location_quality:
+                    logger.debug("users: Location %s found to replace %s for %s" % (location, self._location, self))
                     self._location = location
         return self._location
     
     @property
     def location(self):
-        return self._get_location()[0]
+        location = self._get_location()
+        if location:
+            return location[0]
     
     @property
     def location_quality(self):
@@ -54,7 +63,7 @@ class User(object):
         return self._get_location()[1]
     
     def __cmp__(self, other):
-        return cmp((self.name, self.email), (other.name, other.email))
+        return cmp(self.name, other.name)
     
     def __hash__(self):
         return hash(self.name) + hash(self.email)
@@ -67,14 +76,18 @@ class Users(object):
         self.users = set()
     
     def add_user(self, user):
-        if user in self.users:
-            existing = self.get_user_by_email(user.email)
+        try:
+            existing = self.get_user_by_name(user.name)
+        except IndexError:
+            self.users.add(user)
+        else:
             # Merge in new location functions
             existing._location_func += user._location_func
-        else:
-            self.users.add(user)
+            if existing.email is None and user.email:
+                existing.email = user.email            
     
     def get_user_by_email(self, email):
+        raise NotImplementedError
         return [u for u in self.users if u.email == email][0]
 
     def get_user_by_name(self, name):
