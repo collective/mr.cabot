@@ -86,7 +86,10 @@ class MailingList(object):
         
         # Remove quoted printable
         from_[0] = decode_header(from_[0])[0]
-        from_[0] = from_[0][0].decode(from_[0][1])
+        encoding = from_[0][1]
+        if encoding is None:
+            encoding = "utf-8"
+        from_[0] = from_[0][0].decode(encoding)
         
         users.add_user(User(from_[0], from_[1], location_func=email_location))
 
@@ -105,7 +108,10 @@ class GmaneGeolocation(object):
         
         # Remove quoted printable
         from_[0] = decode_header(from_[0])[0]
-        from_[0] = from_[0][0].decode(from_[0][1])
+        encoding = from_[0][1]
+        if encoding is None:
+            encoding = "utf-8"
+        from_[0] = from_[0][0].decode(encoding)
         
         try:
             return getUtility(IUserDatabase).get_user_by_email(from_[1]).location
