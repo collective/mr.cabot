@@ -74,9 +74,9 @@ class SOGeolocation(object):
     @property
     def coords(self):
         geocoder = ggeocoder.Geocoder()
-        user = self.answer.owner['user_id']
+        self.user = self.answer.owner['user_id']
         url = "https://api.stackexchange.com/2.1/users/%s?site=stackoverflow"
-        url %= (user)
+        url %= (self.user)
         try:
             resp = urllib2.urlopen(url).read()
             resp = gzip.GzipFile(fileobj=StringIO(resp)).read()

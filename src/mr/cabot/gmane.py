@@ -113,15 +113,19 @@ class GmaneGeolocation(object):
             encoding = "utf-8"
         from_[0] = from_[0][0].decode(encoding)
         
+        self.location = None
         try:
-            return getUtility(IUserDatabase).get_user_by_email(from_[1]).location
+            self.user = getUtility(IUserDatabase).get_user_by_email(from_[1])
+            self.location = user.location
         except:
             pass
         try:
-            return getUtility(IUserDatabase).get_user_by_name(from_[0]).location
+            self.user = getUtility(IUserDatabase).get_user_by_email(from_[0])
+            self.location = user.location
         except:
             pass
-
+        
+        return self.location
 class GmaneListing(object):
 	
     __name__ = "mailing-list"

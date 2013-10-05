@@ -153,8 +153,8 @@ class Issue(object):
     def coords(self):
         users = getUtility(IUserDatabase)
         try:
-            author = users.get_user_by_name(self.data['user']['login'])
-            return author.location
+            self.user = users.get_user_by_name(self.data['user']['login'])
+            return self.user.location
         except:
             return None
     

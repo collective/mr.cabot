@@ -130,17 +130,18 @@ class GitGeolocation(object):
     def coords(self):
         users = getUtility(IUserDatabase)
         author = None
+        self.user = None
         try:
-            author = users.get_user_by_email(self.commit.author[1])
+            self.user = users.get_user_by_email(self.commit.author[1])
         except:
             try:
-                author = users.get_user_by_name(self.commit.author[0])
+                self.user = users.get_user_by_name(self.commit.author[0])
             except:
                 pass
-        if author is None:
+        if self.user is None:
             return None
         else:
-            return author.location
+            return self.user.location
     
 
 class GitListing(object):
