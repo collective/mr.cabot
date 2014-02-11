@@ -18,68 +18,11 @@ LINKS = re.compile("<(.*?)>; rel=\"(.*?)\",?")
 
 ALREADY_FOUND = set()
 
-ORDERED_TYPES = ["country", "administrative_area_level_1", 
-    "administrative_area_level_2", "administrative_area_level_3", 
-    "colloquial_area", "locality", "sublocality", "neighbourhood", 
-    "postal_code", "premise"]
-
-def lazy_location(user):
-    geocoder = ggeocoder.Geocoder()
-    def get_location():
-        if not user.get("location", None):
-            return None
-        try:
-            result = geocoder.geocode(user['location'])[0]
-            coords = result.coordinates
-            types = result.data['types']
-            interesting_types = [t for t in types if t in ORDERED_TYPES]
-            quality = max([ORDERED_TYPES.index(t) for t in interesting_types])
-            if not quality:
-                quality = 1 # We trust github more than geoip
-            logger.debug("geocoder: Getting coordinates for user %s at %s == %s (%s)" % (user['login'], user['location'], `coords`, " ".join(interesting_types)))
-            return coords, quality
-        except:
-            return None, None
-    return get_location
-
 
 class create(object):
     
     def __init__(self, org):
         self.org = org
-    
-    def _get_github_accounts(self, accounts, token):
-        users = getUtility(IUserDatabase)
-        i = 0.0
-        for account in accounts:
-            i+=1
-            if account in ALREADY_FOUND:
-                continue
-            url = "https://api.github.com/users/%s?access_token=%s" % (account,token)
-            logger.debug("github: getting %s" % url)
-            gh_api = urllib2.urlopen(url)
-            user = json.loads(gh_api.read())
-            ALREADY_FOUND.add(account)
-            users.add_user(User(user.get('name', user['login']), user.get('email', None), username=user['login'], location_func=lazy_location(user)))
-    
-    def get_users(self, token):
-        url = "https://api.github.com/orgs/%s/members?access_token=%s" % (self.org, token)
-        while True:
-            logger.debug("github: getting %s" % url)
-            members_resp = urllib2.urlopen(url)
-            members = json.loads(members_resp.read())
-            all_members = set()
-            for member in members:
-                all_members.add(member['login'])
-            links = LINKS.findall(members_resp.headers.get('Link', ''))
-            links = {link[1]:link[0] for link in links}
-            if 'next' in links:
-                logger.debug("github: %s has too many users, requesting more" % (self.org))
-                url = links['next']
-            else:
-                logger.info("github: Got %s users for %s" % (len(members), self.org))
-                break
-        return self._get_github_accounts(all_members, token)
     
     def get_data(self, token, checkout_directory):
         self.token = token
@@ -134,8 +77,6 @@ class create(object):
         return data
 
 class Issue(object):
-    implements(IGeolocation, IListing)
-    
     __name__ = "issue"
     
     def __init__(self, data):
@@ -147,17 +88,4 @@ class Issue(object):
         date_components = map(int, date.split("T")[0].split("-"))
         date = datetime.date(*date_components)
         return datetime.datetime.combine(date, datetime.time(0,0))
-        
     
-    @property
-    def coords(self):
-        users = getUtility(IUserDatabase)
-        try:
-            self.user = users.get_user_by_name(self.data['user']['login'])
-            return self.user.location
-        except:
-            return None
-    
-    @property
-    def summary(self):
-        return self.data['title']

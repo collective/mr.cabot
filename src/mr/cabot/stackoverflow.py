@@ -63,48 +63,7 @@ class StackOverflow(object):
             answers |= question.answers
         return answers
 
-class SOGeolocation(object):
-	
-    adapts(Answer)
-    implements(IGeolocation)
-    
-    def __init__(self, answer):
-        self.answer = answer
-    
-    @property
-    def coords(self):
-        geocoder = ggeocoder.Geocoder()
-        self.user = self.answer.owner['user_id']
-        url = "https://api.stackexchange.com/2.1/users/%s?site=stackoverflow"
-        url %= (self.user)
-        try:
-            resp = urllib2.urlopen(url).read()
-            resp = gzip.GzipFile(fileobj=StringIO(resp)).read()
-            user = json.loads(resp)['items'][0]
-        except:
-            return None
-        try:
-            logger.info("geocoder: Getting coordinates for %s" % (user['location']))
-            location = geocoder.geocode(user['location'])[0].coordinates
-        except:
-            location = None
-        return location
-
-class SOAnswerListing(object):
-	
-    __name__ = "answer"
-    
-    adapts(Answer)
-    implements(IListing)
-    
-    def __init__(self, answer):
-        self.answer = answer
-
-    @property
-    def summary(self):
-        return '%s answered the question "%s"' % (self.answer.owner['display_name'], self.answer.title)
 
 
 gsm = getGlobalSiteManager()
 gsm.registerAdapter(SOGeolocation)
-gsm.registerAdapter(SOAnswerListing)

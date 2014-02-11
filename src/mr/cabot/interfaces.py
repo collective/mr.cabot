@@ -5,9 +5,3 @@ class IGeolocation(Interface):
 
 class IUserDatabase(Interface):
     pass
-
-class IListing(Interface):
-    
-    def summary():
-        pass
-    

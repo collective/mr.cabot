@@ -1,4 +1,3 @@
-import collections
 import datetime
 from email.utils import parsedate_tz, parseaddr, mktime_tz
 import itertools
@@ -8,10 +7,6 @@ import subprocess
 import tempfile
 import shutil
 
-from zope.component import adapts, getGlobalSiteManager, getUtility
-from zope.interface import implements
-
-from mr.cabot.interfaces import IGeolocation, IListing, IUserDatabase
 from mr.cabot.sebastian import logger
 
 BLOCKED_COMMANDS = set()
@@ -58,7 +53,7 @@ class GitRepo(object):
             self.location = location
             self.package = os.path.split(location)[-1]
             try:
-                pulled = self._git_command("pull")
+                self._git_command("pull")
             except:
                 pass
             self.remove = False
@@ -117,53 +112,3 @@ class GitRepo(object):
         past = now - datetime.timedelta(days=5)
         return set(self.commits_since(past))
     
-
-class GitGeolocation(object):
-	
-    adapts(Commit)
-    implements(IGeolocation)
-    
-    def __init__(self, commit):
-        self.commit = commit
-    
-    @property
-    def coords(self):
-        users = getUtility(IUserDatabase)
-        author = None
-        self.user = None
-        try:
-            self.user = users.get_user_by_email(self.commit.author[1])
-        except:
-            try:
-                self.user = users.get_user_by_name(self.commit.author[0])
-            except:
-                pass
-        if self.user is None:
-            return None
-        else:
-            return self.user.location
-    
-
-class GitListing(object):
-	
-    __name__ = "commit"
-    
-    adapts(Commit)
-    implements(IListing)
-    
-    def __init__(self, commit):
-        self.commit = commit
-
-    @property
-    def summary(self):
-        author = self.commit.author[0].decode("utf-8")
-        subject = self.commit.message.decode("utf-8")
-        if len(subject) > 25:
-            subject = subject[:25]+"..."
-        date = self.commit.date
-        return "%s committed <br />'%s' <br />to %s on %s" % (author, subject, self.commit.package, date.isoformat())
-
-
-gsm = getGlobalSiteManager()
-gsm.registerAdapter(GitGeolocation)
-gsm.registerAdapter(GitListing)
