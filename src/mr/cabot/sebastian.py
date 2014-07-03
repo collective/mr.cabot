@@ -69,6 +69,7 @@ class Sebastian(object):
         """
         users = self._get_sources_by_type("users")
         for source_id, source in users.items():
+            import pdb; pdb.set_trace()
             kwargs = inspect.getargspec(source.get_users).args
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
             kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}

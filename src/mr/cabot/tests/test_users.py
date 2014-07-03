@@ -1,3 +1,6 @@
+ # -*- coding: utf-8 -*-
+
+
 from unittest import TestCase
 
 from mr.cabot.users import User, Users
