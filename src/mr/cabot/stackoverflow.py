@@ -1,6 +1,3 @@
-from mr.cabot.interfaces import IGeolocation, IListing
-from zope.component import getGlobalSiteManager, adapts
-from zope.interface import implements
 import calendar
 import datetime
 import json
@@ -8,13 +5,12 @@ import gzip
 from StringIO import StringIO
 import urllib2
 
-import ggeocoder
 from mr.cabot.sebastian import logger
 
 BASE = "https://api.stackexchange.com/2.1/questions?site=stackoverflow&filter=!9hnGssUZw"
 
 def create(tag):
-	return StackOverflow([tag])
+    return StackOverflow([tag])
 
 class Question(object):
     
@@ -64,6 +60,3 @@ class StackOverflow(object):
         return answers
 
 
-
-gsm = getGlobalSiteManager()
-gsm.registerAdapter(SOGeolocation)

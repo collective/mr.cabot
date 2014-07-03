@@ -20,7 +20,7 @@ from mr.cabot.users import User
 IP = re.compile("\d+\.\d+\.\d+\.\d+")
 
 def create(group):
-	return MailingList(group)
+    return MailingList(group)
 
 class MailingList(object):
     
@@ -32,6 +32,7 @@ class MailingList(object):
         try:
             gmane = NNTP("news.gmane.org")
         except:
+            # You spin me right round, baby, right round.
             return self.gmane
         gmane.group(self.group)
         return gmane
@@ -53,7 +54,6 @@ class MailingList(object):
         mail.date=datetime.datetime.fromtimestamp(mktime_tz(parsedate_tz(mail['date'])))
         self.add_sender(mail)
         return mail
-
     
     def get_data(self, messages):
         messages = int(messages)
@@ -65,23 +65,8 @@ class MailingList(object):
                 pass
         return data
     
-    def add_sender(self, message):
-        def email_location():
-            recieved = message.get_all('Original-Received')
-            ips = [IP.findall(h) for h in recieved]
-            ips = [ip[0] for ip in ips if ip and not ip[0].startswith("10.") and not ip[0].startswith("192.168")]
-            likely = ips[-1]
-            try:
-                logger.info("geocoder: Getting location for %s" % (likely))
-                url = "http://freegeoip.net/json/%s"%likely
-                logger.debug("geocoder: Fetching %s" % (url))
-                loc = json.loads(urllib2.urlopen(url).read())
-                ll = float(loc['latitude']), float(loc['longitude'])
-                if any(ll):
-                    return ll, 0
-            except:
-                pass
-        users = getUtility(IUserDatabase)
+    @property
+    def sender_info(self, message):
         from_ = list(email.utils.parseaddr(message.get("From")))
         
         # Remove quoted printable

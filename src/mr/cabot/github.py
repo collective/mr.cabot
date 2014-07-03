@@ -4,14 +4,7 @@ import os
 import re
 import urllib2
 
-import ggeocoder
-from zope.component import getUtility
-from zope.interface import implements
-
-from mr.cabot.interfaces import IGeolocation
-from mr.cabot.interfaces import IUserDatabase
 from mr.cabot.git import GitRepo
-from mr.cabot.users import User
 from mr.cabot.sebastian import logger
 
 LINKS = re.compile("<(.*?)>; rel=\"(.*?)\",?")
