@@ -19,7 +19,6 @@ class create(object):
     
     def get_data(self, token, checkout_directory):
         self.token = token
-        data = set()
         
         if checkout_directory == "temp":
             checkout_directory = None
@@ -31,7 +30,7 @@ class create(object):
             issues_resp = urllib2.urlopen(url)
             issues = json.loads(issues_resp.read())
             for issue in issues:
-                data.add(Issue(issue))
+                yield Issue(issue)
             links = LINKS.findall(issues_resp.headers.get('Link', ''))
             links = {link[1]:link[0] for link in links}
             if 'next' in links:
@@ -56,6 +55,9 @@ class create(object):
                     location = None
                 logger.info("github: Getting changes for %s/%s" % (self.org, repo_name))
                 self.repos[repo_name] = GitRepo(repo_url, location=location)
+                for datum in self.repos[repo_name].get_data():
+                    if datum:
+                        yield datum
             links = LINKS.findall(org_repos_resp.headers.get('Link', ''))
             links = {link[1]:link[0] for link in links}
             if 'next' in links:
@@ -65,12 +67,10 @@ class create(object):
                 logger.info("github: Got all repos for %s" % (self.org))
                 break
         logger.debug("github: Got data for %d repos in %s" % (len(self.repos), self.org))
-        for repo in self.repos.values():
-            data |= repo.get_data()
-        return data
 
 class Issue(object):
     __name__ = "issue"
+    type = 'issue'
     
     def __init__(self, data):
         self.data = data
@@ -81,4 +81,13 @@ class Issue(object):
         date_components = map(int, date.split("T")[0].split("-"))
         date = datetime.date(*date_components)
         return datetime.datetime.combine(date, datetime.time(0,0))
+    
+    @property
+    def id(self):
+        return "github-issue:%s" % self.data['id']
+    
+    @property
+    def identity(self):
+        return "github:%s" % self.data['user']['login']
+    
     

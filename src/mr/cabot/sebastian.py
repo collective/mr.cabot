@@ -1,3 +1,23 @@
+import os
+import transaction
+
+from sqlalchemy import engine_from_config
+
+from pyramid.paster import (
+    get_appsettings,
+    setup_logging,
+    )
+
+from pyramid.scripts.common import parse_vars
+
+from .models import (
+    DBSession,
+    Base,
+    Identity,
+    Activity
+    )
+from sqlalchemy.orm.exc import NoResultFound
+
 import argparse
 from ConfigParser import SafeConfigParser
 import datetime
@@ -40,40 +60,14 @@ class Sebastian(object):
             kwargs = inspect.getargspec(source.get_data).args
             kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
             kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-            local_data = source.get_data(**kwargs)
-            self.data |= local_data
-        
-        day_filter = int(self.config.get("cabot", "days", "5"))
-        ago = datetime.datetime.now() - datetime.timedelta(days=day_filter)
-        self.data = {datum for datum in self.data if datum.date >= ago}
-        sorted_data = sorted(self.data, key=attrgetter('date'))
-        
-        data_directory = os.path.join(find_base(), "var", "data")
-        if not os.path.exists(data_directory):
-            os.mkdir(data_directory)
-        today = datetime.datetime.now().date()
-        base_path = os.path.join(data_directory, today.isoformat())
-        with open(base_path+".pickle", "wb") as todays_source:
-            todays_source.write(pickle.dumps(sorted_data))
-        return sorted_data
+            for datum in source.get_data(**kwargs):
+                yield datum
     
     def generate_map(self, data):
         if not hasattr(self, 'data'):
             self.populate_user_database()
         print join(data)
     
-    def populate_user_database(self):
-        """Go through the sources that can enumerate users and populate our
-        database so we can search against it.
-        """
-        users = self._get_sources_by_type("users")
-        for source_id, source in users.items():
-            import pdb; pdb.set_trace()
-            kwargs = inspect.getargspec(source.get_users).args
-            kwargs = {kwarg for kwarg in kwargs if kwarg != 'self'}
-            kwargs = {kwarg:self.config.get(source_id, kwarg) for kwarg in kwargs}
-            source.get_users(**kwargs)
-
     def _get_sources_by_type(self, type):
         source_ids = self.config.get("cabot", type).split()
         found = {}
@@ -91,6 +85,7 @@ class Sebastian(object):
         logger.addHandler(ch)
         self.parser = argparse.ArgumentParser()
         version = pkg_resources.get_distribution("mr.cabot").version
+        self.parser.add_argument('configuration', nargs=1)
         self.parser.add_argument('-v', '--version',
                     action='version',
                     version='mr.cabot %s' % version)
@@ -117,17 +112,31 @@ class Sebastian(object):
             git.BLOCKED_COMMANDS.add("pull")
             git.BLOCKED_COMMANDS.add("fetch")
         
+        config_uri = args.configuration[0]
+        setup_logging(config_uri)
+        settings = get_appsettings(config_uri)
+        engine = engine_from_config(settings, 'sqlalchemy.')
+        DBSession.configure(bind=engine)
+        
         self.config = SafeConfigParser()
         self.config.read(os.path.join(self.buildout_dir, "mr.cabot.cfg"))        
         
-        if args.pickle is None:
-            # Load the user and sources to set up adapters            
-            data = self.generate_data()
-        else:
-            self._get_sources_by_type("sources")
-            with open(args.pickle, "rb") as picklefile:
-                data = pickle.loads(picklefile.read())
+        used_native = set()
         
-        self.generate_map(data)
-
+        with transaction.manager:
+            for datum in self.generate_data():
+                try:
+                    ident = DBSession.query(Identity).filter_by(uri=datum.identity).one()
+                except NoResultFound:
+                    ident = Identity(uri=datum.identity)
+                    DBSession.add(ident)
+                if datum.id in used_native:
+                    act = Activity(type=datum.type, native_id=datum.id, date=datum.date, identity=ident)
+                    used_native.add(datum.id)
+                    DBSession.add(act)
+                    transaction.commit()
+                else:
+                    continue
+                
+        
 sebastian = Sebastian()

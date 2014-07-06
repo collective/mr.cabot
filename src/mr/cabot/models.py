@@ -26,7 +26,7 @@ Base = declarative_base()
 class Activity(Base):
     __tablename__ = 'activity'
     id = Column(Integer, primary_key=True)
-    type = Column(Enum('commit', 'email', 'question', 'answer', name="activity_types"))
+    type = Column(Enum('commit', 'issue', 'email', 'question', 'answer', name="activity_types"))
     identity_id = Column(Integer, ForeignKey('identity.id'))
     identity = relationship("Identity")
     
@@ -52,7 +52,7 @@ class ContributorLocation(Base):
     display_name = Column(Text)
     contributor_id = Column(Integer, ForeignKey('contributor.id'))
     contributor = relationship("Contributor",
-        backref="identities")
+        backref="locations")
     latitude = Column(Float)
     longitude = Column(Float)
     from_date = Column(Date)
@@ -62,5 +62,5 @@ class ContributorLocation(Base):
 Index('identity_uri', Identity.uri, unique=True, mysql_length=255)
 Index('location_from', ContributorLocation.from_date)
 Index('location_to', ContributorLocation.to_date)
-Index('activity_native', Activity.native_id)
+Index('activity_native', Activity.native_id, unique=True)
 

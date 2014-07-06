@@ -13,6 +13,7 @@ def create(tag):
     return StackOverflow([tag])
 
 class Question(object):
+    type = 'question'
     
     def __init__(self, kwargs):
         self.__dict__.update(kwargs)
@@ -22,12 +23,39 @@ class Question(object):
         for answer in kwargs['answers']:
             self.answers.add(Answer(answer, title=self.title))
 
+    @property
+    def date(self):
+        import pdb; pdb.set_trace( )
+        date = self.data['updated_at']
+        date_components = map(int, date.split("T")[0].split("-"))
+        date = datetime.date(*date_components)
+        return datetime.datetime.combine(date, datetime.time(0,0))
+    
+    @property
+    def id(self):
+        import pdb; pdb.set_trace( )
+        return "so:%s" % self.data['id']
+    
+    @property
+    def identity(self):
+        import pdb; pdb.set_trace( )
+        return "so:%s" % self.data['user']['login']
+    
 class Answer(object):
+    type = 'answer'
     
     def __init__(self, kwargs, title):
         self.__dict__.update(kwargs)
         self.date = datetime.datetime.fromtimestamp(self.creation_date)
         self.title = title
+
+    @property
+    def id(self):
+        return "so:%d" % self.answer_id
+    
+    @property
+    def identity(self):
+        return "so:%s" % self.owner['user_id']
 
 class StackOverflow(object):
     

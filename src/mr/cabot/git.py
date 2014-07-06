@@ -1,14 +1,9 @@
 import datetime
 from email.utils import parsedate_tz, parseaddr, mktime_tz
-import itertools
-from operator import attrgetter
 import os
 import subprocess
 import tempfile
 import shutil
-
-from mr.cabot.sebastian import logger
-from mr.cabot import users
 
 BLOCKED_COMMANDS = set()
 
@@ -16,6 +11,7 @@ def create(url):
     return GitRepo(url)
 
 class Commit(object):
+    type = 'commit'
     
     def __init__(self, kwargs, package, numcommits=None):
         self.__dict__.update(kwargs)
@@ -34,6 +30,16 @@ class Commit(object):
             num = self._num_commits + other._num_commits
             data = {"author":self.author, "date":min(self.date, other.date), "message":"%d commits" % (num)}
             return Commit(data, self.package, numcommits=num)
+        
+    
+    @property
+    def id(self):
+        return "git:%s" % self.commit
+    
+    @property
+    def identity(self):
+        return "git:%s" % self.author[-1]
+    
 
 class GitRepo(object):
     
@@ -72,18 +78,6 @@ class GitRepo(object):
         finally:
             os.chdir(cwd)
     
-    def commits_since(self, date):
-        commits = {commit for commit in self.commits() if commit and commit.date > date}
-        if len(commits) > 5:
-            author=attrgetter("author")
-            grouped = itertools.groupby(sorted(commits, key=author),key=author)
-            grouped_commits = set()
-            for user, commits in grouped:
-                logger.debug("git: Combined commits by %s in %s" % (user, self.package))
-                grouped_commits.add(reduce(Commit.__add__, commits))
-            commits = grouped_commits
-        return commits
-    
     def commits(self):
         try:
             log = self._git_command("log")
@@ -105,14 +99,11 @@ class GitRepo(object):
         
         try:
             data['author'] = parseaddr(data['author'])
-            data['author'] = users.UserDB.get(data['author'][0])
         except KeyError:
             return None
         
         return Commit(data, package=self.package)
     
     def get_data(self):
-        now = datetime.datetime.now()
-        past = now - datetime.timedelta(days=5)
-        return set(self.commits_since(past))
+        return set(self.commits())
     
