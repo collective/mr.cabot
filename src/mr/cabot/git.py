@@ -8,6 +8,7 @@ import tempfile
 import shutil
 
 from mr.cabot.sebastian import logger
+from mr.cabot import users
 
 BLOCKED_COMMANDS = set()
 
@@ -72,7 +73,7 @@ class GitRepo(object):
             os.chdir(cwd)
     
     def commits_since(self, date):
-        commits = {commit for commit in self.commits() if commit.date > date}
+        commits = {commit for commit in self.commits() if commit and commit.date > date}
         if len(commits) > 5:
             author=attrgetter("author")
             grouped = itertools.groupby(sorted(commits, key=author),key=author)
@@ -101,10 +102,13 @@ class GitRepo(object):
             data['date'] = datetime.datetime.fromtimestamp(mktime_tz(parsedate_tz(data['date'])))
         except KeyError:
             data['date'] = datetime.datetime(1970, 1, 1)
+        
         try:
             data['author'] = parseaddr(data['author'])
+            data['author'] = users.UserDB.get(data['author'][0])
         except KeyError:
-            data['author'] = ('','')
+            return None
+        
         return Commit(data, package=self.package)
     
     def get_data(self):

@@ -3,7 +3,6 @@ import urllib
 import os
 import itertools
 
-from mr.cabot.interfaces import IGeolocation
 import sebastian
 
 colors = {"commit": "green", "mailing-list": "blue", "answer": "yellow", "issue": "red"}

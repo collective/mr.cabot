@@ -32,7 +32,6 @@ def find_base():
 class Sebastian(object):
 
     def generate_data(self):
-        self.populate_user_database()
         
         self.data = set()
         sources = self._get_sources_by_type("sources")

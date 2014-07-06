@@ -3,19 +3,10 @@ from email.utils import mktime_tz
 from email.utils import parsedate_tz
 import email
 from email.Header import decode_header
-from email.message import Message
-import json
 from nntplib import NNTP
 import re
-import urllib2
 
-from zope.component import adapts
-from zope.component import getGlobalSiteManager, getUtility
-from zope.interface import implements
-
-from mr.cabot.interfaces import IGeolocation, IUserDatabase, IListing
 from mr.cabot.sebastian import logger
-from mr.cabot.users import User
 
 IP = re.compile("\d+\.\d+\.\d+\.\d+")
 
@@ -29,13 +20,14 @@ class MailingList(object):
     
     @property
     def gmane(self):
-        try:
-            gmane = NNTP("news.gmane.org")
-        except:
+        for attempt in range(5):
             # You spin me right round, baby, right round.
-            return self.gmane
-        gmane.group(self.group)
-        return gmane
+            try:
+                gmane = NNTP("news.gmane.org")
+            except:
+                return self.gmane
+            gmane.group(self.group)
+            return gmane
     
     @property
     def group_info(self):
@@ -56,6 +48,7 @@ class MailingList(object):
         return mail
     
     def get_data(self, messages):
+        return set() # gmane is broken
         messages = int(messages)
         data = set()
         for item in range(self.latest-(messages-1), self.latest+1):
@@ -76,7 +69,6 @@ class MailingList(object):
             encoding = "utf-8"
         from_[0] = from_[0][0].decode(encoding)
         
-        users.add_user(User(from_[0], from_[1], location_func=email_location))
+        users.get(from_[0])
 
 
-gsm = getGlobalSiteManager()
