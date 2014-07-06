@@ -4,12 +4,21 @@ import os, sys
 version = '1.0'
 
 install_requires = [
-  'setuptools',
-  'zope.interface',
-  'zope.component',
-  'ggeocoder',
-  'simplekml',
-]
+    'setuptools',
+    'zope.interface',
+    'zope.component',
+    'ggeocoder',
+    'simplekml',
+    'pyramid',
+    'pyramid_chameleon',
+    'pyramid_debugtoolbar',
+    'pyramid_tm',
+    'SQLAlchemy',
+    'transaction',
+    'zope.sqlalchemy',
+    'waitress',
+    ]
+
 
 setup(name='mr.cabot',
       version=version,
@@ -18,7 +27,9 @@ setup(name='mr.cabot',
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
         "Programming Language :: Python",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Framework :: Pyramid",
+        "Topic :: Internet :: WWW/HTTP",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         ],
       keywords='',
       author='Matthew Wilkes',
@@ -35,5 +46,9 @@ setup(name='mr.cabot',
       entry_points="""
       [console_scripts]
       cabot = mr.cabot.sebastian:sebastian
+      initialize_cabot_db = mr.cabot.scripts.initializedb:main
+      [paste.app_factory]
+      main = mr.cabot:main
       """,
       )
+
