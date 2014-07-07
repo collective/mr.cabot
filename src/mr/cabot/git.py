@@ -72,6 +72,9 @@ class GitRepo(object):
     def _git_command(self, *args):
         if args[0] in BLOCKED_COMMANDS:
             return
+        if args[0] == 'clone':
+            args = list(args)
+            args.insert(1, '--bare')
         cwd = os.getcwd()
         try:
             return subprocess.check_output(["git"] + list(args), stderr=subprocess.STDOUT, cwd=self.location)

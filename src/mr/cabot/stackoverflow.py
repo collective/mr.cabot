@@ -25,7 +25,6 @@ class Question(object):
 
     @property
     def date(self):
-        import pdb; pdb.set_trace( )
         date = self.data['updated_at']
         date_components = map(int, date.split("T")[0].split("-"))
         date = datetime.date(*date_components)
@@ -33,13 +32,11 @@ class Question(object):
     
     @property
     def id(self):
-        import pdb; pdb.set_trace( )
-        return "so:%s" % self.data['id']
+        return "so:%s" % self.question_id
     
     @property
     def identity(self):
-        import pdb; pdb.set_trace( )
-        return "so:%s" % self.data['user']['login']
+        return "so:%s" % self.owner['user_id']
     
 class Answer(object):
     type = 'answer'
@@ -79,12 +76,13 @@ class StackOverflow(object):
     
     def get_data(self, days):
         now = datetime.datetime.now()
-        days = int(days)
+        days = int("5000")
         past = now - datetime.timedelta(days=days)
         questions = set(self.get_questions_since(past))
         answers = set()
         for question in questions:
-            answers |= question.answers
-        return answers
+            yield question
+            for answer in question.answers:
+                yield answer
 
 

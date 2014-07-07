@@ -28,10 +28,13 @@ class Activity(Base):
     id = Column(Integer, primary_key=True)
     type = Column(Enum('commit', 'issue', 'email', 'question', 'answer', name="activity_types"))
     identity_id = Column(Integer, ForeignKey('identity.id'))
-    identity = relationship("Identity")
+    identity = relationship("Identity", backref="activities")
     
     native_id = Column(Text)
     date = Column(Date)
+    
+    def __repr__(self):
+        return "<%s object from %s at %s>" % (self.type, self.date, self.native_id)
 
 class Contributor(Base):
     __tablename__ = 'contributor'
@@ -45,6 +48,9 @@ class Identity(Base):
     contributor_id = Column(Integer, ForeignKey('contributor.id'))
     contributor = relationship("Contributor",
         backref="identities")
+    
+    def __repr__(self):
+        return "<mr.cabot.models.Identity object representing %s>" % (self.uri)
 
 class ContributorLocation(Base):
     __tablename__ = 'location'

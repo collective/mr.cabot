@@ -3,31 +3,44 @@ from pyramid.view import view_config
 
 from sqlalchemy.exc import DBAPIError
 
-from .models import (
+from mr.cabot.models import (
     DBSession,
-    Activity,
+    Identity,
+    Activity
     )
 
+BADGES = [
+    {'name': 'beginner_commit',
+     'commit': 5},
+    {'name': 'expert_commit',
+     'commit': 100},
+    {'name': 'beginner_question',
+     'question': 1},
+    {'name': 'expert_question',
+     'question': 10},
+     
+    {'name': 'beginner_answer',
+     'answer': 10},
+    {'name': 'expert_answer',
+     'answer': 100},
+]
 
 @view_config(route_name='home', renderer='templates/mytemplate.pt')
 def my_view(request):
-    activities = DBSession.query(Activity).all()
-    return {'activities': activities, 'project': 'mr.cabot'}
-
-
-conn_err_msg = """\
-Pyramid is having a problem using your SQL database.  The problem
-might be caused by one of the following things:
-
-1.  You may need to run the "initialize_mr.cabot_db" script
-    to initialize your database tables.  Check your virtual
-    environment's "bin" directory for this script and try to run it.
-
-2.  Your database server may not be running.  Check that the
-    database server referred to by the "sqlalchemy.url" setting in
-    your "development.ini" file is running.
-
-After you fix the problem, please restart the Pyramid application to
-try it again.
-"""
+    awards = {}
+    for badge in BADGES:
+        awards[badge['name']] = []
+    uri = request.GET.get('uri')
+    for identity in DBSession.query(Identity).filter(Identity.uri == uri):
+        for badge in BADGES:
+            if 'commit' in badge:
+                if DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='commit').count() > badge['commit']:
+                    awards[badge['name']].append(identity)
+            if 'question' in badge:
+                if DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='question').count() > badge['question']:
+                    awards[badge['name']].append(identity)
+            if 'answer' in badge:
+                if DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='answer').count() > badge['answer']:
+                    awards[badge['name']].append(identity)
+    return {'awards': awards, 'project': 'mr.cabot'}
 
