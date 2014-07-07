@@ -130,11 +130,10 @@ class Sebastian(object):
                 except NoResultFound:
                     ident = Identity(uri=datum.identity)
                     DBSession.add(ident)
-                if datum.id in used_native:
+                if datum.id not in used_native:
                     act = Activity(type=datum.type, native_id=datum.id, date=datum.date, identity=ident)
                     used_native.add(datum.id)
                     DBSession.add(act)
-                    transaction.commit()
                 else:
                     continue
                 

@@ -23,8 +23,8 @@ class create(object):
         if checkout_directory == "temp":
             checkout_directory = None
         
-        five_days_ago = (datetime.datetime.now() - datetime.timedelta(days=5)).date().isoformat()
-        url = "https://api.github.com/orgs/%s/issues?access_token=%s&filter=all&since=%s" % (self.org, self.token, five_days_ago)
+        time_immemorial = (datetime.datetime.now() - datetime.timedelta(days=1000)).date().isoformat()
+        url = "https://api.github.com/orgs/%s/issues?access_token=%s&filter=all&since=%s" % (self.org, self.token, time_immemorial)
         while True:
             logger.debug("github: getting %s" % url)
             issues_resp = urllib2.urlopen(url)

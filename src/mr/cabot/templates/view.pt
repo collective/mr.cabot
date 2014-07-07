@@ -40,6 +40,24 @@
           </div>
         </div>
         <div class="row">
+          <div class="col-md-3">
+              <h2>${num_commits}</h2>
+              commits
+          </div>
+          <div class="col-md-3">
+              <h2>${num_issues}</h2>
+              issues
+          </div>
+          <div class="col-md-3">
+              <h2>${num_questions}</h2>
+              questions
+          </div>
+          <div class="col-md-3">
+              <h2>${num_answers}</h2>
+              answers
+          </div>
+        </div>        
+        <div class="row">
           <div class="copyright">
             Copyright &copy; Matthew Wilkes
           </div>

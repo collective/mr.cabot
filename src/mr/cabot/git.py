@@ -45,6 +45,7 @@ class GitRepo(object):
     
     def __init__(self, url, location=None):
         self.url = url
+        location += ".git"
         if location is None:
             self.location = self._directory = tempfile.mkdtemp()
             self._git_command("clone", self.url)

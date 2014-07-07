@@ -1,4 +1,3 @@
-import calendar
 import datetime
 import json
 import gzip
@@ -7,7 +6,7 @@ import urllib2
 
 from mr.cabot.sebastian import logger
 
-BASE = "https://api.stackexchange.com/2.1/questions?site=stackoverflow&filter=!9hnGssUZw"
+BASE = "https://api.stackexchange.com/2.2/search?pagesize=100&order=desc&sort=activity&tagged=%s&site=stackoverflow"
 
 def create(tag):
     return StackOverflow([tag])
@@ -59,30 +58,28 @@ class StackOverflow(object):
     def __init__(self, tags):
         self.tags = tags
     
-    def get_questions_since(self, date, method='activity'):
-        ts_from = calendar.timegm(date.utctimetuple())
-        ts_to = calendar.timegm(datetime.datetime.now().utctimetuple())
-        url = BASE
-        url += "&sort=%s" % (method)
-        url += "&min=%d&max=%d" % (ts_from, ts_to)
-        url += "&tagged=%s" % (";".join(self.tags))
-        logger.debug("stackoverflow: getting %s" % url)
-        resp = urllib2.urlopen(url).read()
-        resp = gzip.GzipFile(fileobj=StringIO(resp)).read()
-        questions = json.loads(resp)['items']
-        logger.info("stackoverflow: Getting questions for tags: %s" % (",".join(self.tags)))
-        questions = map(Question, questions)
-        return questions
+    def get_data(self):
+        page = 1
+        while True:
+            url = BASE % ";".join(self.tags)
+            url += "&page=%d" % (page)
+            page += 1
+            
+            logger.debug("stackoverflow: getting %s" % url)
+            resp = urllib2.urlopen(url).read()
+            resp = gzip.GzipFile(fileobj=StringIO(resp)).read()
+            response = json.loads(resp)
+            questions = response['items']
+            logger.info("stackoverflow: Getting questions for tags: %s" % (",".join(self.tags)))
+            for question in questions:
+                question = Question(question)
+                if question.owner['user_type'] == 'registered' and hasattr(question, 'data'):
+                    yield question
+                for answer in question.answers:
+                    if answer.owner['user_type'] == 'registered' and hasattr(answer, 'data'):
+                        yield answer
+            if not response['has_more']:
+                break
     
-    def get_data(self, days):
-        now = datetime.datetime.now()
-        days = int("5000")
-        past = now - datetime.timedelta(days=days)
-        questions = set(self.get_questions_since(past))
-        answers = set()
-        for question in questions:
-            yield question
-            for answer in question.answers:
-                yield answer
-
+  
 

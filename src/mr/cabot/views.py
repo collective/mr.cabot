@@ -37,7 +37,11 @@ def view_user(request):
     commit = 0
     question = 0
     answer = 0
+    issue = 0
     for identity in contributor.identities:
+        if 'so' in identity.uri:
+            import pdb; pdb.set_trace( )
+        issue += DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='issue').count()
         commit += DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='commit').count()
         question += DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='question').count()
         answer += DBSession.query(Activity).filter(Activity.identity_id==identity.id, Activity.type=='answer').count()
@@ -51,7 +55,7 @@ def view_user(request):
         if 'answer' in badge:
             if answer > badge['answer']:
                 awards.append(badge['name'])
-    return {'awards': awards}
+    return {'awards': awards, 'num_commits':commit, 'num_answers':answer, 'num_questions':question, 'num_issues':issue}
 
 @view_config(route_name='edit_user', renderer='templates/edit.pt')
 def edit_user(request):
