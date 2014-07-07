@@ -8,7 +8,7 @@
     <meta name="author" content="Pylons Project">
     <link rel="shortcut icon" href="${request.static_url('mr.cabot:static/pyramid-16x16.png')}">
 
-    <title>Alchemy Scaffold for The Pyramid Web Framework</title>
+    <title>Plone achievements</title>
 
     <!-- Bootstrap core CSS -->
     <link href="//oss.maxcdn.com/libs/twitter-bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
@@ -33,11 +33,8 @@
           </div>
           <div class="col-md-10">
             <div class="content">
-              <div tal:repeat="award awards.items()">
-                  <h3>${award[0]}</h3>
-                  <ul>
-                      <li tal:repeat="user award[1]">${user}</li>
-                  </ul>
+              <div tal:repeat="award awards">
+                  <h3>${award}</h3>
               </div>
             </div>
           </div>
